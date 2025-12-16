@@ -16,7 +16,7 @@
         .title { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
         .section-title { font-weight: bold; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
         .content-item { margin-bottom: 8px; line-height: 1.5; }
-        input[type="text"], input[type="password"], input[type="email"], textarea { border: none; border-bottom: 1px dashed #000; padding: 2px; font-size: 10pt; width: 100%; box-sizing: border-box; background-color: #fffff0; margin-bottom: 10px; }
+        input[type="text"], input[type="password"], input[type="email"], textarea, select { border: none; border-bottom: 1px dashed #000; padding: 2px; font-size: 10pt; width: 100%; box-sizing: border-box; background-color: #fffff0; margin-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         button { padding: 8px 15px; font-size: 11pt; cursor: pointer; margin: 5px 0; border: none; border-radius: 3px; }
         .btn-primary { background-color: #007bff; color: white; }
@@ -36,7 +36,7 @@
 <body>
 
 <div id="auth-view" class="auth-container app-view" style="display: block;">
-    <div id="logged-out-content">
+    <div id="logged-out-content" style="display: block;">
         <h2 class="title" style="text-align: center;">Đăng nhập hệ thống Phê duyệt</h2>
         <div class="form-group">
             <label>Email:</label>
@@ -47,8 +47,8 @@
             <input type="password" id="loginPassword" placeholder="********">
         </div>
         <button class="btn-primary" onclick="handleLogin()">Đăng nhập</button>
-        <button onclick="showView('register-view')">Đăng ký</button>
-        <button onclick="showView('reset-password-view')">Quên mật khẩu</button>
+        <button onclick="showAuthSubView('register-view')">Đăng ký</button>
+        <button onclick="showAuthSubView('reset-password-view')">Quên mật khẩu</button>
         <div id="auth-status" class="status-message" style="display: none;"></div>
     </div>
     
@@ -75,7 +75,7 @@
             </select>
         </div>
         <button class="btn-success" onclick="handleRegister()">Hoàn tất Đăng ký</button>
-        <button onclick="showView('logged-out-content')">Quay lại Đăng nhập</button>
+        <button onclick="showAuthSubView('logged-out-content')">Quay lại Đăng nhập</button>
     </div>
 
     <div id="reset-password-view" style="display: none;">
@@ -85,7 +85,7 @@
             <input type="email" id="resetEmail" placeholder="email@example.com">
         </div>
         <button class="btn-warning" onclick="handlePasswordReset()">Gửi liên kết Khôi phục</button>
-        <button onclick="showView('logged-out-content')">Quay lại Đăng nhập</button>
+        <button onclick="showAuthSubView('logged-out-content')">Quay lại Đăng nhập</button>
     </div>
 </div>
 
@@ -93,7 +93,7 @@
     <div style="padding: 10px; background-color: #eee; border-bottom: 1px solid #ccc;">
         <span id="current-user-info">Bạn chưa đăng nhập.</span>
         <button id="logout-btn" onclick="handleLogout()" style="display: none; background-color: #dc3545; color: white; float: right; margin-left: 10px;">Đăng xuất</button>
-        <button id="login-nav-btn" onclick="showView('auth-view')" style="background-color: #007bff; color: white;">Đăng nhập Phê duyệt</button>
+        <button id="login-nav-btn" onclick="showMainView('auth-view')" style="background-color: #007bff; color: white;">Đăng nhập Phê duyệt</button>
     </div>
 
     <form id="lenhCongTacForm" class="container">
@@ -143,16 +143,17 @@
 <script>
     // -------------------------------------------------------------------------------------------------
     // CẤU HÌNH VÀ KHỞI TẠO FIREBASE
-    // THAY THẾ CÁC GIÁ TRỊ NÀY BẰNG CẤU HÌNH THỰC TẾ CỦA BẠN
+    // ĐÃ ĐƯỢC CẬP NHẬT THEO YÊU CẦU CỦA BẠN
     // -------------------------------------------------------------------------------------------------
-const firebaseConfig = {
-  apiKey: "AIzaSyDCx7ILPCpX4fYtBKOgge4A_ydFZaD6n9s",
-  authDomain: "lenhcongtac2.firebaseapp.com",
-  projectId: "lenhcongtac2",
-  storageBucket: "lenhcongtac2.firebasestorage.app",
-  messagingSenderId: "935785429280",
-  appId: "1:935785429280:web:9b485696f5a2700b6bff45"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCx7ILPCpX4fYtBKOgge4A_ydFZaD6n9s",
+        authDomain: "lenhcongtac2.firebaseapp.com",
+        projectId: "lenhcongtac2",
+        storageBucket: "lenhcongtac2.firebasestorage.app",
+        messagingSenderId: "935785429280",
+        appId: "1:935785429280:web:9b485696f5a2700b6bff45"
+    };
+
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -173,21 +174,29 @@ const firebaseConfig = {
         div.style.display = 'block';
     }
 
-    function showView(viewId) {
+    // HÀM MỚI: Quản lý việc chuyển đổi giữa các view chính (auth-view, main-app-view)
+    function showMainView(viewId) {
         document.querySelectorAll('.app-view').forEach(view => view.style.display = 'none');
         document.getElementById(viewId).style.display = 'block';
-
-        // Xóa thông báo lỗi/thành công khi chuyển view
         document.getElementById('auth-status').style.display = 'none';
-
-        // Xử lý logic hiển thị
-        if (viewId === 'auth-view') {
-            // Đảm bảo chỉ hiển thị màn hình đăng nhập mặc định
-            document.getElementById('logged-out-content').style.display = 'block';
-            document.getElementById('register-view').style.display = 'none';
-            document.getElementById('reset-password-view').style.display = 'none';
-        }
     }
+
+    // HÀM MỚI: Quản lý việc chuyển đổi giữa các view con trong auth-view
+    function showAuthSubView(subViewId) {
+        // Đảm bảo phần tử cha auth-view được hiển thị
+        showMainView('auth-view');
+
+        // Ẩn tất cả các view con và chỉ hiển thị view mục tiêu
+        document.getElementById('logged-out-content').style.display = 'none';
+        document.getElementById('register-view').style.display = 'none';
+        document.getElementById('reset-password-view').style.display = 'none';
+
+        document.getElementById(subViewId).style.display = 'block';
+        
+        // Xóa thông báo trạng thái
+        document.getElementById('auth-status').style.display = 'none';
+    }
+
 
     // --- FIREBASE AUTHENTICATION ---
 
@@ -213,7 +222,7 @@ const firebaseConfig = {
                 created_at: firebase.firestore.FieldValue.serverTimestamp()
             });
             displayStatus('auth-status', `Đăng ký thành công! Vui lòng đăng nhập. Vai trò: ${role}`, 'success');
-            showView('logged-out-content');
+            showAuthSubView('logged-out-content'); // Quay lại màn hình đăng nhập
         } catch (error) {
             displayStatus('auth-status', `Lỗi đăng ký: ${error.message}`, 'error');
         }
@@ -258,8 +267,7 @@ const firebaseConfig = {
         currentUser = user;
         if (user) {
             // Người dùng đã đăng nhập
-            showView('main-app-view');
-            document.getElementById('auth-view').style.display = 'none';
+            showMainView('main-app-view');
             document.getElementById('login-nav-btn').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'inline-block';
             
@@ -277,11 +285,16 @@ const firebaseConfig = {
 
         } else {
             // Người dùng chưa đăng nhập
-            showView('main-app-view'); // Vẫn cho phép xem form tạo lệnh
+            showMainView('main-app-view'); // Vẫn cho phép xem form tạo lệnh
             document.getElementById('approval-dashboard-section').style.display = 'none';
             document.getElementById('current-user-info').textContent = 'Bạn chưa đăng nhập. (Chỉ có thể tạo lệnh)';
             document.getElementById('login-nav-btn').style.display = 'inline-block';
             document.getElementById('logout-btn').style.display = 'none';
+            
+            // Đảm bảo màn hình đăng nhập hiển thị giao diện đăng nhập mặc định
+            if(document.getElementById('auth-view').style.display === 'block') {
+                showAuthSubView('logged-out-content');
+            }
         }
     });
 
@@ -325,6 +338,7 @@ const firebaseConfig = {
             await lenhCollection.add(lenhData);
             displayStatus('creationStatus', `Lệnh công tác số ${soLenh} đã được gửi thành công và đang chờ **Approver1** phê duyệt.`, 'success');
             document.getElementById('lenhCongTacForm').reset(); // Xóa form sau khi gửi
+            loadApprovalDashboard(); // Cập nhật danh sách nếu người dùng đang đăng nhập
         } catch (e) {
             console.error("Lỗi khi lưu tài liệu: ", e);
             displayStatus("Lỗi khi gửi lệnh công tác.", 'error');
@@ -339,24 +353,35 @@ const firebaseConfig = {
         pendingList.innerHTML = '';
         completedList.innerHTML = '';
 
-        if (!currentUserRole) return; // Chưa xác định được vai trò
+        if (!currentUserRole) {
+            // Thêm một li cho trạng thái chưa có vai trò
+            if(currentUser) {
+                pendingList.innerHTML = '<li>Đang tải thông tin vai trò người dùng...</li>';
+            }
+            return; 
+        }
 
         try {
-            // Tải các lệnh cần phê duyệt (Status = 'Pending' và Role khớp với bước hiện tại)
-            const requiredRole = `Approver${lenhCollection.current_approval_step + 1}`;
             
             const snapshot = await lenhCollection
-                .where('status', 'in', ['Pending L1 Approval', 'Pending L2 Approval', 'Approved', 'Rejected'])
                 .orderBy('created_at', 'asc')
                 .limit(20)
                 .get();
+            
+            if (snapshot.empty) {
+                pendingList.innerHTML = '<li>Không có lệnh công tác nào đang chờ.</li>';
+                completedList.innerHTML = '<li>Không có lệnh công tác nào đã hoàn thành/từ chối.</li>';
+                return;
+            }
+
+            let hasPending = false;
+            let hasCompleted = false;
 
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const currentStep = data.current_approval_step;
                 const nextRequiredRole = data.approval_flow[currentStep]?.role;
 
-                // Tạo đối tượng hiển thị
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
                     <div style="text-align: left; flex-grow: 1;">
@@ -369,9 +394,7 @@ const firebaseConfig = {
                 actionDiv.className = 'actions';
 
                 const isPendingMyApproval = (
-                    (data.status.startsWith('Pending') && currentUserRole === nextRequiredRole) ||
-                    (data.status === 'Pending L1 Approval' && currentUserRole === 'Approver1') ||
-                    (data.status === 'Pending L2 Approval' && currentUserRole === 'Approver2')
+                    data.status.startsWith('Pending') && currentUserRole === nextRequiredRole
                 );
 
                 if (isPendingMyApproval) {
@@ -380,21 +403,26 @@ const firebaseConfig = {
                         <button class="btn-danger" onclick="approveRejectLenh('${doc.id}', false)">❌ Từ chối</button>
                     `;
                     pendingList.appendChild(listItem).appendChild(actionDiv);
+                    hasPending = true;
                 } else if (data.status === 'Approved' || data.status === 'Rejected') {
-                    // Hiển thị các lệnh đã hoàn thành/từ chối
                     const color = data.status === 'Approved' ? 'green' : 'red';
                     listItem.style.borderLeftColor = color;
                     actionDiv.innerHTML = `<small style="color: ${color}; font-weight: bold;">Đã ${data.status === 'Approved' ? 'Duyệt' : 'Từ chối'}</small>`;
                     completedList.appendChild(listItem).appendChild(actionDiv);
+                    hasCompleted = true;
                 } else if (data.status.startsWith('Pending')) {
-                    // Đang chờ cấp phê duyệt khác
                     actionDiv.innerHTML = `<small>Đang chờ: ${nextRequiredRole || 'Hoàn tất'}</small>`;
                     pendingList.appendChild(listItem).appendChild(actionDiv);
+                    hasPending = true;
                 }
             });
+
+            if (!hasPending) pendingList.innerHTML = '<li>Không có lệnh công tác nào cần bạn phê duyệt.</li>';
+            if (!hasCompleted) completedList.innerHTML = '<li>Không có lệnh công tác nào đã hoàn thành/từ chối.</li>';
+
         } catch (e) {
             console.error("Lỗi khi tải dashboard: ", e);
-            pendingList.innerHTML = '<li>Lỗi khi tải dữ liệu.</li>';
+            pendingList.innerHTML = '<li>Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối Firebase.</li>';
         }
     }
 
@@ -410,32 +438,29 @@ const firebaseConfig = {
                 const currentStep = data.current_approval_step;
                 const approvalFlow = data.approval_flow;
 
-                if (currentStep >= approvalFlow.length) throw "Lệnh đã được phê duyệt hoàn tất.";
+                if (currentStep >= approvalFlow.length && isApproved) throw "Lệnh đã được phê duyệt hoàn tất.";
                 
-                const requiredRole = approvalFlow[currentStep].role;
+                const requiredRole = approvalFlow[currentStep]?.role;
 
-                // 1. Kiểm tra quyền phê duyệt
                 if (currentUserRole !== requiredRole) {
                     throw `Bạn không có quyền phê duyệt bước này. (Cần: ${requiredRole}, Hiện tại: ${currentUserRole})`;
                 }
 
                 if (isApproved) {
-                    // 2. PHÊ DUYỆT
+                    // PHÊ DUYỆT
                     approvalFlow[currentStep] = {
                         ...approvalFlow[currentStep],
                         user_id: currentUser.uid,
                         approved_at: firebase.firestore.FieldValue.serverTimestamp(),
-                        signature: `Signed by ${currentUserRole}` // Giả lập chữ ký số
+                        signature: `Signed by ${currentUserRole} (${currentUser.email})`
                     };
 
                     const nextStep = currentStep + 1;
                     let newStatus;
 
                     if (nextStep < approvalFlow.length) {
-                        // Chuyển sang bước phê duyệt tiếp theo
                         newStatus = `Pending L${nextStep + 1} Approval`;
                     } else {
-                        // Phê duyệt hoàn tất
                         newStatus = 'Approved';
                     }
 
@@ -448,7 +473,7 @@ const firebaseConfig = {
                     alert(`Phê duyệt thành công! Lệnh ${data.so_lenh} chuyển sang trạng thái: ${newStatus}`);
 
                 } else {
-                    // 3. TỪ CHỐI
+                    // TỪ CHỐI
                     transaction.update(lenhRef, {
                         status: 'Rejected',
                         last_updated: firebase.firestore.FieldValue.serverTimestamp()
