@@ -174,33 +174,27 @@
         div.style.display = 'block';
     }
 
-    // HÀM MỚI: Quản lý việc chuyển đổi giữa các view chính (auth-view, main-app-view)
     function showMainView(viewId) {
         document.querySelectorAll('.app-view').forEach(view => view.style.display = 'none');
         document.getElementById(viewId).style.display = 'block';
         document.getElementById('auth-status').style.display = 'none';
     }
 
-    // HÀM MỚI: Quản lý việc chuyển đổi giữa các view con trong auth-view
     function showAuthSubView(subViewId) {
-        // Đảm bảo phần tử cha auth-view được hiển thị
         showMainView('auth-view');
 
-        // Ẩn tất cả các view con và chỉ hiển thị view mục tiêu
         document.getElementById('logged-out-content').style.display = 'none';
         document.getElementById('register-view').style.display = 'none';
         document.getElementById('reset-password-view').style.display = 'none';
 
         document.getElementById(subViewId).style.display = 'block';
         
-        // Xóa thông báo trạng thái
         document.getElementById('auth-status').style.display = 'none';
     }
 
 
     // --- FIREBASE AUTHENTICATION ---
 
-    // 1. Đăng ký
     async function handleRegister() {
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
@@ -222,30 +216,26 @@
                 created_at: firebase.firestore.FieldValue.serverTimestamp()
             });
             displayStatus('auth-status', `Đăng ký thành công! Vui lòng đăng nhập. Vai trò: ${role}`, 'success');
-            showAuthSubView('logged-out-content'); // Quay lại màn hình đăng nhập
+            showAuthSubView('logged-out-content');
         } catch (error) {
             displayStatus('auth-status', `Lỗi đăng ký: ${error.message}`, 'error');
         }
     }
 
-    // 2. Đăng nhập
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            // onAuthStateChanged sẽ tự động xử lý chuyển view
         } catch (error) {
             displayStatus('auth-status', `Lỗi đăng nhập: ${error.message}`, 'error');
         }
     }
 
-    // 3. Đăng xuất
     function handleLogout() {
         auth.signOut();
     }
 
-    // 4. Đổi/Reset Mật khẩu
     async function handlePasswordReset() {
         const email = document.getElementById('resetEmail').value;
         if (!email) {
@@ -261,27 +251,44 @@
     }
 
 
-    // --- XỬ LÝ TRẠNG THÁI ĐĂNG NHẬP ---
+    // --- XỬ LÝ TRẠNG THÁI ĐĂNG NHẬP (ĐÃ CẬP NHẬT) ---
 
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         if (user) {
-            // Người dùng đã đăng nhập
+            // Người dùng đã đăng nhập: luôn hiển thị main-app-view
             showMainView('main-app-view');
             document.getElementById('login-nav-btn').style.display = 'none';
             document.getElementById('logout-btn').style.display = 'inline-block';
             
+            // Luôn hiển thị container của dashboard, ngay cả khi vai trò chưa được tải
+            document.getElementById('approval-dashboard-section').style.display = 'block';
+
             // Lấy vai trò của người dùng
-            const userDoc = await userCollection.doc(user.uid).get();
-            if (userDoc.exists) {
-                currentUserRole = userDoc.data().role;
-                document.getElementById('current-user-info').innerHTML = `Xin chào, **${userDoc.data().name}** (${currentUserRole})`;
-                document.getElementById('current-user-role').textContent = currentUserRole;
-                document.getElementById('approval-dashboard-section').style.display = 'block';
-                loadApprovalDashboard();
-            } else {
-                currentUserRole = 'Guest'; // Lỗi, chưa có dữ liệu vai trò
+            try {
+                const userDoc = await userCollection.doc(user.uid).get();
+                if (userDoc.exists) {
+                    currentUserRole = userDoc.data().role;
+                    const userName = userDoc.data().name || user.email;
+                    document.getElementById('current-user-info').innerHTML = `Xin chào, **${userName}** (${currentUserRole})`;
+                    document.getElementById('current-user-role').textContent = currentUserRole;
+                } else {
+                    // Cảnh báo nếu không tìm thấy dữ liệu vai trò
+                    currentUserRole = 'Guest';
+                    document.getElementById('current-user-info').innerHTML = `Xin chào, **${user.email}**. <span style="color: red; font-weight: bold;">LỖI: Không tìm thấy vai trò (Role) trong Firestore!</span>`;
+                    document.getElementById('current-user-role').textContent = 'Error: Check Firestore "users" collection';
+                    alert("CẢNH BÁO LỖI: Tài khoản đã đăng nhập nhưng không tìm thấy dữ liệu vai trò (role) trong Firestore. Vui lòng kiểm tra collection 'users' và Security Rules.");
+                }
+            } catch (error) {
+                 // Xử lý lỗi khi cố gắng đọc dữ liệu (ví dụ: lỗi Security Rules)
+                currentUserRole = 'Guest';
+                document.getElementById('current-user-info').innerHTML = `Xin chào, **${user.email}**. <span style="color: red; font-weight: bold;">LỖI: Không thể đọc dữ liệu vai trò. Vui lòng kiểm tra Firestore Security Rules.</span>`;
+                document.getElementById('current-user-role').textContent = 'Error: Check Security Rules';
+                console.error("Lỗi khi đọc vai trò người dùng:", error);
             }
+            
+            // Tải Dashboard bất kể vai trò được tải thành công hay thất bại (để hiển thị thông báo lỗi)
+            loadApprovalDashboard();
 
         } else {
             // Người dùng chưa đăng nhập
@@ -290,8 +297,8 @@
             document.getElementById('current-user-info').textContent = 'Bạn chưa đăng nhập. (Chỉ có thể tạo lệnh)';
             document.getElementById('login-nav-btn').style.display = 'inline-block';
             document.getElementById('logout-btn').style.display = 'none';
+            currentUserRole = null; 
             
-            // Đảm bảo màn hình đăng nhập hiển thị giao diện đăng nhập mặc định
             if(document.getElementById('auth-view').style.display === 'block') {
                 showAuthSubView('logged-out-content');
             }
@@ -353,11 +360,9 @@
         pendingList.innerHTML = '';
         completedList.innerHTML = '';
 
-        if (!currentUserRole) {
-            // Thêm một li cho trạng thái chưa có vai trò
-            if(currentUser) {
-                pendingList.innerHTML = '<li>Đang tải thông tin vai trò người dùng...</li>';
-            }
+        if (!currentUserRole || currentUserRole === 'Guest') {
+            pendingList.innerHTML = '<li>Không thể tải danh sách. Lỗi: Vai trò người dùng (Role) chưa được xác định. Vui lòng kiểm tra Firestore Security Rules và Collection "users".</li>';
+            completedList.innerHTML = '<li></li>';
             return; 
         }
 
@@ -422,7 +427,7 @@
 
         } catch (e) {
             console.error("Lỗi khi tải dashboard: ", e);
-            pendingList.innerHTML = '<li>Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối Firebase.</li>';
+            pendingList.innerHTML = '<li>Lỗi khi tải dữ liệu lệnh công tác. Vui lòng kiểm tra lại Firestore Security Rules cho Collection "lenh_cong_tac".</li>';
         }
     }
 
