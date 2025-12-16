@@ -2,19 +2,22 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>LỆNH CÔNG TÁC</title>
+    <title>LỆNH CÔNG TÁC - Mẫu Điền</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             font-size: 11pt;
+            background-color: #f4f4f4;
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             border: 1px solid #000;
-            padding: 15px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         .header {
             text-align: center;
@@ -32,11 +35,17 @@
         }
         .section-title {
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 15px;
             margin-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 3px;
         }
         .content-item {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .content-item label {
+            font-weight: normal;
         }
         table {
             width: 100%;
@@ -45,26 +54,58 @@
         }
         th, td {
             border: 1px solid #000;
-            padding: 5px;
+            padding: 5px 3px;
             text-align: center;
+            font-size: 10pt;
         }
         .left-align {
             text-align: left;
+        }
+        input[type="text"], textarea {
+            border: none;
+            border-bottom: 1px dashed #000;
+            padding: 2px;
+            font-size: 10pt;
+            width: auto;
+            display: inline-block;
+            box-sizing: border-box;
+            background-color: #fffff0; /* Màu nền nhạt để dễ phân biệt */
+        }
+        input.short-input {
+            width: 50px;
+            text-align: center;
+        }
+        input.medium-input {
+            width: 150px;
+        }
+        input.full-width {
+            width: calc(100% - 10px);
+        }
+        textarea {
+            border: 1px dashed #000;
+            width: 100%;
+            min-height: 50px;
+            resize: vertical;
         }
         .signature-area {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
+            text-align: center;
         }
         .signature-box {
             width: 48%;
-            text-align: center;
+        }
+        .signature-label {
+            margin-top: 50px; /* Khoảng trống cho chữ ký */
+            font-weight: bold;
         }
         .note {
             font-size: 9pt;
             margin-top: 15px;
             border-top: 1px dashed #000;
             padding-top: 10px;
+            text-align: justify;
         }
     </style>
 </head>
@@ -73,20 +114,20 @@
 <div class="container">
     <div class="unit-name">
         TÊN ĐƠN VỊ CẤP LỆNH<br>
-        ...........................................
+        <input type="text" class="full-width" style="border-bottom: 1px dashed #000; width: 300px;">
     </div>
 
     <div class="header">
         <div class="title">PHỤ LỤC B MẪU LỆNH CÔNG TÁC</div>
         <div class="title">LỆNH CÔNG TÁC</div>
-        <div>Số:............</div>
+        <div>Số:<input type="text" class="short-input" style="width: 80px;"></div>
     </div>
 
     <div class="section-title">A. Phần lưu giữ của Người ra lệnh</div>
     <div class="content-item">Nội dung lệnh:</div>
-    <div class="content-item">1. Người chỉ huy trực tiếp (Người thi hành lệnh):................................................ Bậc ATĐ ......./5</div>
-    <div class="content-item">2. Nhân viên đơn vị công tác, gồm: ............ người:</div>
-    <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) .........................................................................................</div>
+    <div class="content-item left-align">1. Người chỉ huy trực tiếp (Người thi hành lệnh):<input type="text" class="medium-input" style="width: 300px;"> Bậc ATĐ <input type="text" class="short-input">/5</div>
+    <div class="content-item left-align">2. Nhân viên đơn vị công tác, gồm: <input type="text" class="short-input"> người:</div>
+    <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) <input type="text" class="full-width" style="width: 90%;"></div>
     <div class="content-item left-align">Danh sách nhân viên đơn vị công tác và thay đổi người (nếu có):</div>
     <table>
         <thead>
@@ -100,33 +141,33 @@
         <tbody>
             <tr>
                 <td>1</td>
-                <td>&nbsp;</td>
-                <td>/5</td>
+                <td><input type="text" class="full-width"></td>
+                <td><input type="text" class="short-input">/5</td>
                 <td>&nbsp;</td>
             </tr>
             <tr>
                 <td>...</td>
-                <td>&nbsp;</td>
-                <td>/5</td>
+                <td><input type="text" class="full-width"></td>
+                <td><input type="text" class="short-input">/5</td>
                 <td>&nbsp;</td>
             </tr>
             <tr>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>/5</td>
+                <td></td>
+                <td><input type="text" class="full-width"></td>
+                <td><input type="text" class="short-input">/5</td>
                 <td>&nbsp;</td>
             </tr>
         </tbody>
     </table>
-    <div class="content-item">3. Địa điểm (hoặc thiết bị) tiến hành công tác: ..............................................................................</div>
-    <div class="content-item">4. Nội dung công tác: ........................................... <br>
-    ...........................................................................</div>
-    <div class="content-item">5. Điều kiện về an toàn điện để tiến hành công việc: .....................................................................</div>
-    <div class="content-item">6. Thời gian bắt đầu làm việc từ ..........giờ ........phút, ngày ...../....../........</div>
+    <div class="content-item">3. Địa điểm (hoặc thiết bị) tiến hành công tác: <input type="text" class="full-width" style="width: 90%;"></div>
+    <div class="content-item">4. Nội dung công tác: <textarea></textarea></div>
+    <div class="content-item">5. Điều kiện về an toàn điện để tiến hành công việc: <textarea></textarea></div>
+    <div class="content-item">6. Thời gian bắt đầu làm việc từ <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
     
     <div class="signature-area">
         <div class="signature-box">
-            Người ra lệnh công tác (ký, ghi họ, tên): ..........................................................................
+            <div class="signature-label">Người ra lệnh công tác</div>
+            (ký, ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
         </div>
         <div class="signature-box">
             &nbsp;
@@ -138,18 +179,18 @@
 
         <div class="unit-name">
             TÊN ĐƠN VỊ CẤP LỆNH<br>
-            ...........................................
+            <input type="text" class="full-width" style="border-bottom: 1px dashed #000; width: 300px;">
         </div>
 
         <div class="header">
             <div class="title">LỆNH CÔNG TÁC</div>
-            <div>Số:..............</div>
+            <div>Số:<input type="text" class="short-input" style="width: 80px;"></div>
         </div>
 
         <div class="content-item">1. Nội dung lệnh:</div>
-        <div class="content-item">1.1. Người chỉ huy trực tiếp (Người thi hành lệnh):....................................... Bậc ATĐ ............/5</div>
-        <div class="content-item">1.2. Nhân viên đơn vị công tác, gồm: ............... người:</div>
-        <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) ...............................................................................................</div>
+        <div class="content-item">1.1. Người chỉ huy trực tiếp (Người thi hành lệnh):<input type="text" class="medium-input" style="width: 300px;"> Bậc ATĐ <input type="text" class="short-input">/5</div>
+        <div class="content-item">1.2. Nhân viên đơn vị công tác, gồm: <input type="text" class="short-input"> người:</div>
+        <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) <input type="text" class="full-width" style="width: 90%;"></div>
         <div class="content-item left-align">Danh sách nhân viên đơn vị công tác và thay đổi người (nếu có):</div>
         <table>
             <thead>
@@ -158,3 +199,131 @@
                     <th rowspan="2" style="width: 20%;">Họ, tên</th>
                     <th rowspan="2" style="width: 10%;">Bậc ATĐ</th>
                     <th colspan="2">Đến làm việc</th>
+                    <th colspan="2">Rút khỏi</th>
+                </tr>
+                <tr>
+                    <th style="width: 20%;">Thời gian (giờ, ngày, tháng)</th>
+                    <th style="width: 10%;">Ký tên</th>
+                    <th style="width: 20%;">Thời gian (giờ, ngày, tháng)</th>
+                    <th style="width: 10%;">Ký tên</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="short-input">/5</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+                <tr>
+                    <td>...</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="short-input">/5</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="short-input">/5</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="content-item">1.3. Địa điểm (hoặc thiết bị) tiến hành công việc: <textarea></textarea></div>
+        <div class="content-item">1.4. Nội dung công việc: <textarea></textarea></div>
+        <div class="content-item">1.5. Điều kiện về an toàn điện để tiến hành công việc: <textarea></textarea></div>
+        <div class="content-item">1.6. Thời gian bắt đầu làm việc theo kế hoạch, từ <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
+
+        <div class="signature-area">
+            <div class="signature-box">
+                <div class="signature-label">Người ra Lệnh công tác</div>
+                (ký, ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+            </div>
+            <div class="signature-box">
+                &nbsp;
+            </div>
+        </div>
+
+        <div class="content-item section-title">2. Thực hiện lệnh</div>
+        <div class="content-item">2.1. Người chỉ huy trực tiếp (Người thi hành lệnh) (ký, ghi họ, tên):<input type="text" class="medium-input" style="width: 300px;">  Bậc ATĐ <input type="text" class="short-input">/5</div>
+        <div class="content-item">2.2. Người giám sát an toàn điện (ký, ghi họ, tên [nếu có]): <input type="text" class="medium-input" style="width: 250px;"> thuộc đơn vị (ghi tên đơn vị cử Người giám sát an toàn điện) <input type="text" class="medium-input" style="width: 300px;"></div>
+        <div class="content-item">2.3. Trình tự công việc và các điều kiện an toàn từ lúc bắt đầu đến lúc kết thúc công việc</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">TT</th>
+                    <th style="width: 40%;">Trình tự công việc</th>
+                    <th style="width: 30%;">Các điều kiện an toàn</th>
+                    <th colspan="2">Thời gian</th>
+                </tr>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th>&nbsp;</th>
+                    <th>&nbsp;</th>
+                    <th style="width: 12.5%;">Bắt đầu</th>
+                    <th style="width: 12.5%;">Kết thúc</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+                <tr>
+                    <td>...</td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                    <td><input type="text" class="full-width"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="content-item section-title">3. Kết thúc công tác</div>
+        <div class="content-item">Đơn vị công tác kết thúc, làm xong công việc lúc <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
+        <div class="content-item">Người chỉ huy trực tiếp (Người thi hành lệnh) đã báo cho ông (bà):<input type="text" class="medium-input" style="width: 300px;"> Chức danh Người ra lệnh: <input type="text" class="medium-input" style="width: 250px;"></div>
+        
+        <div class="signature-area">
+            <div class="signature-box">
+                <div class="signature-label">Người chỉ huy trực tiếp (Người thi hành lệnh)</div>
+                (ký và ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+            </div>
+            <div class="signature-box">
+                Đã kiểm tra hoàn thành Lệnh, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"><br>
+                <div class="signature-label">Người ra lệnh công tác</div>
+                (ký và ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+            </div>
+        </div>
+
+        <div class="note">
+            Ghi chú: Tùy theo tổ chức sản xuất và điều kiện thực tế (có thể áp dụng mẫu điện tử, bản ghi âm,...), tổ chức, cá nhân tham gia hoạt động điện lực, sử dụng điện có thể ban hành hướng dẫn chi tiết việc thực hiện lệnh công tác nhưng không trái với quy định của Mẫu lệnh này.
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; font-size: 14pt; cursor: pointer;">In Lệnh Công Tác</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
