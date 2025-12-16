@@ -247,7 +247,7 @@
         }
     }
 
-    // 2. Đăng nhập
+// 2. Đăng nhập
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
@@ -255,6 +255,7 @@
             await auth.signInWithEmailAndPassword(email, password);
             // onAuthStateChanged sẽ tự động xử lý chuyển view
         } catch (error) {
+            // Đoạn này đã bắt lỗi và hiển thị thông báo
             displayStatus('auth-status', `Lỗi đăng nhập: ${error.message}`, 'error');
         }
     }
