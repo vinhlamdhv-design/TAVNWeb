@@ -1,21 +1,526 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>LỆNH CÔNG TÁC - HỆ THỐNG PHÊ DUYỆT</title>
     
-    // 1. Cho phép người dùng đã đăng nhập đọc/ghi dữ liệu vai trò của chính họ
-    // Quan trọng: Chỉ người dùng có thể đọc document của chính mình (docId == request.auth.uid)
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
-    // 2. Cho phép người dùng đã đăng nhập đọc tất cả lệnh công tác để hiển thị dashboard
-    // Cho phép người dùng chưa đăng nhập tạo lệnh (write)
-    match /lenh_cong_tac/{lenhId} {
-      // Cho phép tất cả người dùng tạo lệnh (người tạo lệnh không cần đăng nhập)
-      allow create: if true; 
-      
-      // Cho phép người dùng đã đăng nhập đọc và cập nhật (phê duyệt)
-      allow read, update: if request.auth != null; 
+    <style>
+        /* CSS Giữ nguyên */
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 11pt; background-color: #f4f4f4; }
+        .container { width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #000; }
+        .auth-container { max-width: 400px; margin: 50px auto; padding: 20px; background-color: #fefefe; border: 1px solid #ccc; border-radius: 5px; }
+        .header { text-align: center; margin-bottom: 15px; }
+        .title { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
+        .section-title { font-weight: bold; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+        .content-item { margin-bottom: 8px; line-height: 1.5; }
+        input[type="text"], input[type="password"], input[type="email"], textarea, select { border: none; border-bottom: 1px dashed #000; padding: 2px; font-size: 10pt; width: 100%; box-sizing: border-box; background-color: #fffff0; margin-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        button { padding: 8px 15px; font-size: 11pt; cursor: pointer; margin: 5px 0; border: none; border-radius: 3px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-warning { background-color: #ffc107; color: #333; }
+        .status-message { margin-top: 10px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .app-view { display: none; }
+        #approval-dashboard li { background-color: #e9e9e9; margin-bottom: 8px; padding: 10px; border-radius: 5px; border-left: 5px solid #007bff; display: flex; justify-content: space-between; align-items: center; }
+        #approval-dashboard .actions { min-width: 250px; text-align: right;}
+        #current-user-info { float: right; margin-top: -10px; font-size: 10pt; }
+        .creator-form-field { width: 300px !important; display: inline-block !important;}
+    </style>
+</head>
+<body>
+
+<div id="auth-view" class="auth-container app-view">
+    <div id="logged-out-content" style="display: block;">
+        <h2 class="title" style="text-align: center;">Đăng nhập hệ thống Phê duyệt</h2>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="loginEmail" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu:</label>
+            <input type="password" id="loginPassword" placeholder="********">
+        </div>
+        <button class="btn-primary" onclick="handleLogin()">Đăng nhập</button>
+        <button onclick="showAuthSubView('register-view')">Đăng ký</button>
+        <button onclick="showAuthSubView('reset-password-view')">Quên mật khẩu</button>
+        <div id="auth-status" class="status-message" style="display: none;"></div>
+    </div>
+    
+    <div id="register-view" style="display: none;">
+        <h2 class="title" style="text-align: center;">Đăng ký tài khoản</h2>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="registerEmail" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu (tối thiểu 6 ký tự):</label>
+            <input type="password" id="registerPassword" placeholder="********">
+        </div>
+        <div class="form-group">
+            <label>Họ tên:</label>
+            <input type="text" id="registerName" placeholder="Ví dụ: Trần Văn B">
+        </div>
+        <div class="form-group">
+            <label>Vai trò (Role):</label>
+            <select id="registerRole" style="width: 100%; padding: 5px;">
+                <option value="Approver1">Cấp Phê duyệt 1 (Người ra lệnh)</option>
+                <option value="Approver2">Cấp Phê duyệt 2 (Lãnh đạo)</option>
+                <option value="Staff">Nhân viên/Khác</option>
+            </select>
+        </div>
+        <button class="btn-success" onclick="handleRegister()">Hoàn tất Đăng ký</button>
+        <button onclick="showAuthSubView('logged-out-content')">Quay lại Đăng nhập</button>
+    </div>
+
+    <div id="reset-password-view" style="display: none;">
+        <h2 class="title" style="text-align: center;">Khôi phục Mật khẩu</h2>
+        <div class="form-group">
+            <label>Email đã đăng ký:</label>
+            <input type="email" id="resetEmail" placeholder="email@example.com">
+        </div>
+        <button class="btn-warning" onclick="handlePasswordReset()">Gửi liên kết Khôi phục</button>
+        <button onclick="showAuthSubView('logged-out-content')">Quay lại Đăng nhập</button>
+    </div>
+</div>
+
+<div id="main-app-view" class="app-view" style="display: block;"> 
+    <div style="padding: 10px; background-color: #eee; border-bottom: 1px solid #ccc;">
+        <span id="current-user-info">Bạn chưa đăng nhập.</span>
+        <button id="logout-btn" onclick="handleLogout()" style="display: none; background-color: #dc3545; color: white; float: right; margin-left: 10px;">Đăng xuất</button>
+        <button id="login-nav-btn" onclick="showMainView('auth-view')" style="background-color: #007bff; color: white;">Đăng nhập Phê duyệt</button>
+    </div>
+
+    <form id="lenhCongTacForm" class="container">
+        <h2 class="title" style="color: #007bff;">TẠO LỆNH CÔNG TÁC MỚI</h2>
+        <div class="unit-name">
+            TÊN ĐƠN VỊ CẤP LỆNH: <input type="text" id="unitName" class="creator-form-field" value="CÔNG TY ĐIỆN LỰC ABC">
+        </div>
+        <div class="header">
+            <div class="title">LỆNH CÔNG TÁC</div>
+            <div>Số:<input type="text" id="soLenh" class="creator-form-field" style="width: 80px;" value="LC-2025-001"></div>
+        </div>
+
+        <div class="section-title">A. Phần lưu giữ của Người ra lệnh</div>
+        
+        <div class="content-item">1. Người chỉ huy trực tiếp: <input type="text" id="nguoiChiHuyA" class="creator-form-field" style="width: 300px;" value="Nguyễn Văn A"> Bậc ATĐ <input type="text" id="bacATDA" class="creator-form-field" style="width: 50px;" value="4">/5</div>
+        <div class="content-item">3. Địa điểm tiến hành công tác: <input type="text" id="diaDiemA" class="creator-form-field" style="width: 90%;" value="Trạm biến áp 110kV X"></div>
+        <div class="content-item">4. Nội dung công tác: <textarea id="noiDungA">Thí nghiệm định kỳ và bảo trì bộ đổi nấc dưới tải (OLTC).</textarea></div>
+        <div class="content-item">6. Thời gian bắt đầu: <input type="text" id="timeStart" class="creator-form-field" style="width: 150px;" value="08:00 16/12/2025"></div>
+        
+        <div class="signature-area">
+            <div class="signature-box">
+                <div class="signature-label">Người ra lệnh công tác (Dự kiến)</div>
+                (ký, ghi họ, tên): <input type="text" id="nguoiRaLenhA" class="creator-form-field" style="width: 250px; text-align: center;" value="Trần Văn B (Cấp 1)">
+            </div>
+            <div class="signature-box">
+                </div>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="button" class="btn-success" onclick="saveLenhCongTac()">✅ Gửi Yêu cầu Phê duyệt</button>
+        </div>
+        <div id="creationStatus" class="status-message" style="display: none;"></div>
+    </form>
+    
+    <div id="approval-dashboard-section" class="container" style="display: none;">
+        <h2 class="title" style="color: #28a745;">BẢNG ĐIỀU KHIỂN PHÊ DUYỆT (Vai trò: <span id="current-user-role"></span>)</h2>
+        <div class="section-title">Danh sách Lệnh Công Tác cần bạn phê duyệt</div>
+        <ul id="approval-dashboard">
+            <li>Đang tải...</li>
+        </ul>
+        <div class="section-title">Lệnh đã phê duyệt/hoàn thành</div>
+        <ul id="completed-dashboard">
+            <li>Đang tải...</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // -------------------------------------------------------------------------------------------------
+    // CẤU HÌNH VÀ KHỞI TẠO FIREBASE
+    // -------------------------------------------------------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCx7ILPCpX4fYtBKOgge4A_ydFZaD6n9s",
+        authDomain: "lenhcongtac2.firebaseapp.com",
+        projectId: "lenhcongtac2",
+        storageBucket: "lenhcongtac2.firebasestorage.app",
+        messagingSenderId: "935785429280",
+        appId: "1:935785429280:web:9b485696f5a2700b6bff45"
+    };
+
+    let auth;
+    let db;
+    let lenhCollection;
+    let userCollection;
+
+    let currentUser = null;
+    let currentUserRole = null;
+
+    // --- HÀM KHỞI TẠO APP (Chạy khi DOM đã tải xong) ---
+    function initApp() {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        auth = firebase.auth();
+        db = firebase.firestore();
+        lenhCollection = db.collection('lenh_cong_tac');
+        userCollection = db.collection('users');
+
+        // Bắt đầu lắng nghe trạng thái đăng nhập
+        setupAuthStateListener();
+
+        // Mặc định hiển thị view chính (main-app-view) khi tải xong
+        // Trạng thái đăng nhập sẽ quyết định có hiện auth-view hay không
+        showMainView('main-app-view'); 
+        
+        // **QUAN TRỌNG:** Nếu người dùng chưa đăng nhập, cần điều hướng đến view đăng nhập.
+        // Tuy nhiên, onAuthStateChanged sẽ xử lý việc đó. Nếu onAuthStateChanged chưa kịp chạy, 
+        // người dùng sẽ thấy nút "Đăng nhập Phê duyệt" để tự navigate.
     }
-  }
-}
+
+    // --- CÁC HÀM TIỆN ÍCH ---
+
+    function displayStatus(elementId, message, type) {
+        const div = document.getElementById(elementId);
+        div.textContent = message;
+        div.className = 'status-message ' + type;
+        div.style.display = 'block';
+    }
+
+    // HÀM: Quản lý việc chuyển đổi giữa các view chính (auth-view, main-app-view)
+    function showMainView(viewId) {
+        document.querySelectorAll('.app-view').forEach(view => view.style.display = 'none');
+        document.getElementById(viewId).style.display = 'block';
+        document.getElementById('auth-status').style.display = 'none';
+    }
+
+    // HÀM: Quản lý việc chuyển đổi giữa các view con trong auth-view
+    function showAuthSubView(subViewId) {
+        // Đảm bảo phần tử cha auth-view được hiển thị
+        showMainView('auth-view');
+
+        // Ẩn tất cả các view con và chỉ hiển thị view mục tiêu
+        document.getElementById('logged-out-content').style.display = 'none';
+        document.getElementById('register-view').style.display = 'none';
+        document.getElementById('reset-password-view').style.display = 'none';
+
+        document.getElementById(subViewId).style.display = 'block';
+        
+        // Xóa thông báo trạng thái
+        document.getElementById('auth-status').style.display = 'none';
+    }
+
+
+    // --- FIREBASE AUTHENTICATION ---
+
+    // 1. Đăng ký
+    async function handleRegister() {
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const name = document.getElementById('registerName').value;
+        const role = document.getElementById('registerRole').value;
+        
+        if (!email || !password || !name) {
+            displayStatus('auth-status', 'Vui lòng điền đủ Email, Mật khẩu và Họ tên.', 'error');
+            return;
+        }
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // Lưu thông tin bổ sung vào Firestore
+            await userCollection.doc(userCredential.user.uid).set({
+                name: name,
+                role: role,
+                email: email,
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            displayStatus('auth-status', `Đăng ký thành công! Vui lòng đăng nhập. Vai trò: ${role}`, 'success');
+            showAuthSubView('logged-out-content'); // Quay lại màn hình đăng nhập
+        } catch (error) {
+            displayStatus('auth-status', `Lỗi đăng ký: ${error.message}`, 'error');
+        }
+    }
+
+    // 2. Đăng nhập
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // onAuthStateChanged sẽ tự động xử lý chuyển view
+        } catch (error) {
+            displayStatus('auth-status', `Lỗi đăng nhập: ${error.message}`, 'error');
+        }
+    }
+
+    // 3. Đăng xuất
+    function handleLogout() {
+        auth.signOut();
+    }
+
+    // 4. Đổi/Reset Mật khẩu
+    async function handlePasswordReset() {
+        const email = document.getElementById('resetEmail').value;
+        if (!email) {
+            displayStatus('auth-status', 'Vui lòng nhập Email.', 'error');
+            return;
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            displayStatus('auth-status', `Đã gửi email khôi phục mật khẩu đến ${email}. Vui lòng kiểm tra hộp thư.`, 'success');
+        } catch (error) {
+            displayStatus('auth-status', `Lỗi khôi phục: ${error.message}`, 'error');
+        }
+    }
+
+
+    // --- XỬ LÝ TRẠNG THÁI ĐĂNG NHẬP ---
+
+    function setupAuthStateListener() {
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                // Người dùng đã đăng nhập
+                showMainView('main-app-view'); // Chuyển về màn hình chính
+                document.getElementById('login-nav-btn').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'inline-block';
+                
+                // Lấy vai trò của người dùng
+                const userDoc = await userCollection.doc(user.uid).get();
+                if (userDoc.exists) {
+                    currentUserRole = userDoc.data().role;
+                    document.getElementById('current-user-info').innerHTML = `Xin chào, **${userDoc.data().name}** (${currentUserRole})`;
+                    document.getElementById('current-user-role').textContent = currentUserRole;
+                    document.getElementById('approval-dashboard-section').style.display = 'block';
+                    loadApprovalDashboard();
+                } else {
+                    currentUserRole = 'Staff'; // Mặc định nếu chưa có vai trò
+                    document.getElementById('current-user-info').innerHTML = `Xin chào, **${user.email}** (Staff)`;
+                    document.getElementById('approval-dashboard-section').style.display = 'none'; // Ẩn dashboard nếu không có vai trò phê duyệt
+                }
+
+            } else {
+                // Người dùng chưa đăng nhập
+                // Giữ ở main-app-view, nhưng ẩn dashboard. Yêu cầu người dùng nhấn Đăng nhập
+                showMainView('main-app-view'); 
+                document.getElementById('approval-dashboard-section').style.display = 'none';
+                document.getElementById('current-user-info').textContent = 'Bạn chưa đăng nhập. (Chỉ có thể tạo lệnh)';
+                document.getElementById('login-nav-btn').style.display = 'inline-block';
+                document.getElementById('logout-btn').style.display = 'none';
+                currentUserRole = null;
+                
+                // Nếu đang ở màn hình auth-view (có thể do người dùng nhấn nút Đăng nhập)
+                if(document.getElementById('auth-view').style.display === 'block') {
+                    showAuthSubView('logged-out-content');
+                }
+            }
+        });
+    }
+
+    // --- CHỨC NĂNG TẠO LỆNH (Không cần đăng nhập) ---
+
+    async function saveLenhCongTac() {
+        // [NỘI DUNG HÀM GIỮ NGUYÊN]
+        const soLenh = document.getElementById('soLenh').value;
+        const noiDung = document.getElementById('noiDungA').value;
+        const nguoiChiHuy = document.getElementById('nguoiChiHuyA').value;
+        const nguoiRaLenh = document.getElementById('nguoiRaLenhA').value;
+        const diaDiem = document.getElementById('diaDiemA').value;
+        const timeStart = document.getElementById('timeStart').value;
+
+        if (!soLenh || !noiDung || !nguoiChiHuy) {
+            displayStatus('creationStatus', 'Vui lòng điền đủ Số Lệnh, Nội dung và Người chỉ huy.', 'error');
+            return;
+        }
+
+        // Định nghĩa quy trình phê duyệt: Approver1 -> Approver2
+        const approvalFlow = [
+            { role: 'Approver1', user_id: '', approved_at: null, signature: null },
+            { role: 'Approver2', user_id: '', approved_at: null, signature: null }
+        ];
+
+        const lenhData = {
+            so_lenh: soLenh,
+            nguoi_chi_huy: nguoiChiHuy,
+            nguoi_ra_lenh_du_kien: nguoiRaLenh,
+            dia_diem: diaDiem,
+            noi_dung_cong_tac: noiDung,
+            thoi_gian_bat_dau: timeStart,
+            
+            // Thông tin quy trình phê duyệt
+            approval_flow: approvalFlow,
+            current_approval_step: 0, // Bắt đầu từ bước 0 (Approver1)
+            status: 'Pending L1 Approval',
+            created_at: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+
+        try {
+            await lenhCollection.add(lenhData);
+            displayStatus('creationStatus', `Lệnh công tác số ${soLenh} đã được gửi thành công và đang chờ **Approver1** phê duyệt.`, 'success');
+            document.getElementById('lenhCongTacForm').reset(); // Xóa form sau khi gửi
+            loadApprovalDashboard(); // Cập nhật danh sách nếu người dùng đang đăng nhập
+        } catch (e) {
+            console.error("Lỗi khi lưu tài liệu: ", e);
+            displayStatus('creationStatus', "Lỗi khi gửi lệnh công tác.", 'error');
+        }
+    }
+
+    // --- CHỨC NĂNG PHÊ DUYỆT (Chỉ cho người dùng đăng nhập) ---
+
+    async function loadApprovalDashboard() {
+        // [NỘI DUNG HÀM GIỮ NGUYÊN]
+        const pendingList = document.getElementById('approval-dashboard');
+        const completedList = document.getElementById('completed-dashboard');
+        pendingList.innerHTML = '';
+        completedList.innerHTML = '';
+
+        if (!currentUserRole) {
+            if(currentUser) {
+                pendingList.innerHTML = '<li>Đang tải thông tin vai trò người dùng...</li>';
+            }
+            return; 
+        }
+
+        try {
+            
+            const snapshot = await lenhCollection
+                .orderBy('created_at', 'asc')
+                .limit(20)
+                .get();
+            
+            if (snapshot.empty) {
+                pendingList.innerHTML = '<li>Không có lệnh công tác nào đang chờ.</li>';
+                completedList.innerHTML = '<li>Không có lệnh công tác nào đã hoàn thành/từ chối.</li>';
+                return;
+            }
+
+            let hasPending = false;
+            let hasCompleted = false;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const currentStep = data.current_approval_step;
+                const nextRequiredRole = data.approval_flow[currentStep]?.role;
+
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <div style="text-align: left; flex-grow: 1;">
+                        <strong>${data.so_lenh}</strong> - ${data.noi_dung_cong_tac}
+                        <br><small>Địa điểm: ${data.dia_diem} | Trạng thái: <strong>${data.status}</strong></small>
+                    </div>
+                `;
+
+                const actionDiv = document.createElement('div');
+                actionDiv.className = 'actions';
+
+                const isPendingMyApproval = (
+                    data.status.startsWith('Pending') && currentUserRole === nextRequiredRole
+                );
+
+                if (isPendingMyApproval) {
+                    actionDiv.innerHTML = `
+                        <button class="btn-success" onclick="approveRejectLenh('${doc.id}', true)">✅ Phê duyệt</button>
+                        <button class="btn-danger" onclick="approveRejectLenh('${doc.id}', false)">❌ Từ chối</button>
+                    `;
+                    pendingList.appendChild(listItem).appendChild(actionDiv);
+                    hasPending = true;
+                } else if (data.status === 'Approved' || data.status === 'Rejected') {
+                    const color = data.status === 'Approved' ? 'green' : 'red';
+                    listItem.style.borderLeftColor = color;
+                    actionDiv.innerHTML = `<small style="color: ${color}; font-weight: bold;">Đã ${data.status === 'Approved' ? 'Duyệt' : 'Từ chối'}</small>`;
+                    completedList.appendChild(listItem).appendChild(actionDiv);
+                    hasCompleted = true;
+                } else if (data.status.startsWith('Pending')) {
+                    actionDiv.innerHTML = `<small>Đang chờ: ${nextRequiredRole || 'Hoàn tất'}</small>`;
+                    pendingList.appendChild(listItem).appendChild(actionDiv);
+                    hasPending = true;
+                }
+            });
+
+            if (!hasPending) pendingList.innerHTML = '<li>Không có lệnh công tác nào cần bạn phê duyệt.</li>';
+            if (!hasCompleted) completedList.innerHTML = '<li>Không có lệnh công tác nào đã hoàn thành/từ chối.</li>';
+
+        } catch (e) {
+            console.error("Lỗi khi tải dashboard: ", e);
+            pendingList.innerHTML = '<li>Lỗi khi tải dữ liệu. Vui lòng kiểm tra kết nối Firebase.</li>';
+        }
+    }
+
+    async function approveRejectLenh(docId, isApproved) {
+        // [NỘI DUNG HÀM GIỮ NGUYÊN]
+        const lenhRef = lenhCollection.doc(docId);
+        
+        try {
+            await db.runTransaction(async (transaction) => {
+                const lenhDoc = await transaction.get(lenhRef);
+                if (!lenhDoc.exists) throw "Lệnh công tác không tồn tại!";
+
+                const data = lenhDoc.data();
+                const currentStep = data.current_approval_step;
+                const approvalFlow = data.approval_flow;
+
+                if (currentStep >= approvalFlow.length && isApproved) throw "Lệnh đã được phê duyệt hoàn tất.";
+                
+                const requiredRole = approvalFlow[currentStep]?.role;
+
+                if (currentUserRole !== requiredRole) {
+                    throw `Bạn không có quyền phê duyệt bước này. (Cần: ${requiredRole}, Hiện tại: ${currentUserRole})`;
+                }
+
+                if (isApproved) {
+                    // PHÊ DUYỆT
+                    approvalFlow[currentStep] = {
+                        ...approvalFlow[currentStep],
+                        user_id: currentUser.uid,
+                        approved_at: firebase.firestore.FieldValue.serverTimestamp(),
+                        signature: `Signed by ${currentUserRole} (${currentUser.email})`
+                    };
+
+                    const nextStep = currentStep + 1;
+                    let newStatus;
+
+                    if (nextStep < approvalFlow.length) {
+                        newStatus = `Pending L${nextStep + 1} Approval`;
+                    } else {
+                        newStatus = 'Approved';
+                    }
+
+                    transaction.update(lenhRef, {
+                        approval_flow: approvalFlow,
+                        current_approval_step: nextStep,
+                        status: newStatus,
+                        last_updated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert(`Phê duyệt thành công! Lệnh ${data.so_lenh} chuyển sang trạng thái: ${newStatus}`);
+
+                } else {
+                    // TỪ CHỐI
+                    transaction.update(lenhRef, {
+                        status: 'Rejected',
+                        last_updated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert(`Đã từ chối Lệnh công tác ${data.so_lenh}.`);
+                }
+            });
+            // Tải lại Dashboard sau khi thao tác
+            loadApprovalDashboard();
+
+        } catch (e) {
+            alert(`Lỗi phê duyệt: ${e}`);
+            console.error(e);
+        }
+    }
+
+    // GỌI HÀM KHỞI TẠO KHI TẢI TRANG HOÀN TẤT
+    window.onload = initApp;
+
+</script>
+
+</body>
+</html>
