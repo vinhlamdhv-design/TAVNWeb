@@ -2,8 +2,12 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>LỆNH CÔNG TÁC - Mẫu Điền</title>
+    <title>LỆNH CÔNG TÁC - Mẫu Điền & Firebase</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <style>
+        /* CSS giữ nguyên từ mẫu trước */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -18,6 +22,7 @@
             padding: 20px;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         .header {
             text-align: center;
@@ -44,9 +49,6 @@
             margin-bottom: 8px;
             line-height: 1.5;
         }
-        .content-item label {
-            font-weight: normal;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -69,7 +71,7 @@
             width: auto;
             display: inline-block;
             box-sizing: border-box;
-            background-color: #fffff0; /* Màu nền nhạt để dễ phân biệt */
+            background-color: #fffff0;
         }
         input.short-input {
             width: 50px;
@@ -97,7 +99,7 @@
             width: 48%;
         }
         .signature-label {
-            margin-top: 50px; /* Khoảng trống cho chữ ký */
+            margin-top: 50px;
             font-weight: bold;
         }
         .note {
@@ -107,67 +109,68 @@
             padding-top: 10px;
             text-align: justify;
         }
+        .btn-group button {
+            padding: 10px 20px;
+            font-size: 14pt;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #saved-permits-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        #saved-permits-list li {
+            background-color: #e9e9e9;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border-left: 5px solid #007bff;
+            transition: background-color 0.2s;
+        }
+        #saved-permits-list li:hover {
+            background-color: #dcdcdc;
+        }
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<form id="lenhCongTacForm" class="container">
     <div class="unit-name">
         TÊN ĐƠN VỊ CẤP LỆNH<br>
-        <input type="text" class="full-width" style="border-bottom: 1px dashed #000; width: 300px;">
+        <input type="text" id="unitName" class="full-width" style="border-bottom: 1px dashed #000; width: 300px;" value="CÔNG TY ĐIỆN LỰC ABC">
     </div>
 
     <div class="header">
         <div class="title">PHỤ LỤC B MẪU LỆNH CÔNG TÁC</div>
         <div class="title">LỆNH CÔNG TÁC</div>
-        <div>Số:<input type="text" class="short-input" style="width: 80px;"></div>
+        <div>Số:<input type="text" id="soLenh" class="short-input" style="width: 80px;" value="LC-2025-001"></div>
     </div>
 
     <div class="section-title">A. Phần lưu giữ của Người ra lệnh</div>
     <div class="content-item">Nội dung lệnh:</div>
-    <div class="content-item left-align">1. Người chỉ huy trực tiếp (Người thi hành lệnh):<input type="text" class="medium-input" style="width: 300px;"> Bậc ATĐ <input type="text" class="short-input">/5</div>
-    <div class="content-item left-align">2. Nhân viên đơn vị công tác, gồm: <input type="text" class="short-input"> người:</div>
-    <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) <input type="text" class="full-width" style="width: 90%;"></div>
-    <div class="content-item left-align">Danh sách nhân viên đơn vị công tác và thay đổi người (nếu có):</div>
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%;">TT</th>
-                <th style="width: 40%;">Họ, tên</th>
-                <th style="width: 15%;">Bậc ATĐ</th>
-                <th style="width: 40%;">&nbsp;</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td><input type="text" class="full-width"></td>
-                <td><input type="text" class="short-input">/5</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>...</td>
-                <td><input type="text" class="full-width"></td>
-                <td><input type="text" class="short-input">/5</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><input type="text" class="full-width"></td>
-                <td><input type="text" class="short-input">/5</td>
-                <td>&nbsp;</td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="content-item">3. Địa điểm (hoặc thiết bị) tiến hành công tác: <input type="text" class="full-width" style="width: 90%;"></div>
-    <div class="content-item">4. Nội dung công tác: <textarea></textarea></div>
-    <div class="content-item">5. Điều kiện về an toàn điện để tiến hành công việc: <textarea></textarea></div>
-    <div class="content-item">6. Thời gian bắt đầu làm việc từ <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
+    <div class="content-item left-align">1. Người chỉ huy trực tiếp (Người thi hành lệnh):<input type="text" id="nguoiChiHuyA" class="medium-input" style="width: 300px;" value="Nguyễn Văn A"> Bậc ATĐ <input type="text" id="bacATDA" class="short-input" value="4">/5</div>
+    <div class="content-item left-align">2. Nhân viên đơn vị công tác, gồm: <input type="text" id="soNhanVienA" class="short-input" value="3"> người:</div>
+    <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) <input type="text" id="donViCongTacA" class="full-width" style="width: 90%;" value="Phân xưởng Thí nghiệm & Bảo trì"></div>
+    <div class="content-item">3. Địa điểm (hoặc thiết bị) tiến hành công tác: <input type="text" id="diaDiemA" class="full-width" style="width: 90%;" value="Trạm biến áp 110kV X (Máy biến áp T1)"></div>
+    <div class="content-item">4. Nội dung công tác: <textarea id="noiDungA">Thí nghiệm định kỳ và bảo trì bộ đổi nấc dưới tải (OLTC) máy biến áp T1.</textarea></div>
+    <div class="content-item">5. Điều kiện về an toàn điện để tiến hành công việc: <textarea id="dieuKienAnToanA">Đã cắt điện, kiểm tra không còn điện, tiếp đất 3 pha tại phía 110kV và 22kV. Đặt rào chắn an toàn.</textarea></div>
+    <div class="content-item">6. Thời gian bắt đầu làm việc từ <input type="text" id="gioBatDauA" class="short-input" value="08"> giờ <input type="text" id="phutBatDauA" class="short-input" value="00"> phút, ngày <input type="text" id="ngayBatDauA" class="short-input" value="16">/<input type="text" id="thangBatDauA" class="short-input" value="12">/<input type="text" id="namBatDauA" class="short-input" value="2025"></div>
     
     <div class="signature-area">
         <div class="signature-box">
             <div class="signature-label">Người ra lệnh công tác</div>
-            (ký, ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+            (ký, ghi họ, tên): <input type="text" id="nguoiRaLenhA" class="medium-input" style="width: 250px; text-align: center;" value="Trần Văn B">
         </div>
         <div class="signature-box">
             &nbsp;
@@ -176,154 +179,180 @@
     
     <div style="border-top: 1px dashed #000; margin-top: 15px; padding-top: 10px;">
         <div class="section-title">B. Phần giao cho Người chỉ huy trực tiếp (Người thi hành lệnh)</div>
-
-        <div class="unit-name">
-            TÊN ĐƠN VỊ CẤP LỆNH<br>
-            <input type="text" class="full-width" style="border-bottom: 1px dashed #000; width: 300px;">
-        </div>
-
-        <div class="header">
-            <div class="title">LỆNH CÔNG TÁC</div>
-            <div>Số:<input type="text" class="short-input" style="width: 80px;"></div>
-        </div>
-
-        <div class="content-item">1. Nội dung lệnh:</div>
-        <div class="content-item">1.1. Người chỉ huy trực tiếp (Người thi hành lệnh):<input type="text" class="medium-input" style="width: 300px;"> Bậc ATĐ <input type="text" class="short-input">/5</div>
-        <div class="content-item">1.2. Nhân viên đơn vị công tác, gồm: <input type="text" class="short-input"> người:</div>
-        <div class="content-item left-align">Thuộc (Công ty, Phân xưởng v.v) <input type="text" class="full-width" style="width: 90%;"></div>
-        <div class="content-item left-align">Danh sách nhân viên đơn vị công tác và thay đổi người (nếu có):</div>
-        <table>
-            <thead>
-                <tr>
-                    <th rowspan="2" style="width: 5%;">TT</th>
-                    <th rowspan="2" style="width: 20%;">Họ, tên</th>
-                    <th rowspan="2" style="width: 10%;">Bậc ATĐ</th>
-                    <th colspan="2">Đến làm việc</th>
-                    <th colspan="2">Rút khỏi</th>
-                </tr>
-                <tr>
-                    <th style="width: 20%;">Thời gian (giờ, ngày, tháng)</th>
-                    <th style="width: 10%;">Ký tên</th>
-                    <th style="width: 20%;">Thời gian (giờ, ngày, tháng)</th>
-                    <th style="width: 10%;">Ký tên</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="short-input">/5</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-                <tr>
-                    <td>...</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="short-input">/5</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="short-input">/5</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="content-item">1.3. Địa điểm (hoặc thiết bị) tiến hành công việc: <textarea></textarea></div>
-        <div class="content-item">1.4. Nội dung công việc: <textarea></textarea></div>
-        <div class="content-item">1.5. Điều kiện về an toàn điện để tiến hành công việc: <textarea></textarea></div>
-        <div class="content-item">1.6. Thời gian bắt đầu làm việc theo kế hoạch, từ <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
-
-        <div class="signature-area">
-            <div class="signature-box">
-                <div class="signature-label">Người ra Lệnh công tác</div>
-                (ký, ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
-            </div>
-            <div class="signature-box">
-                &nbsp;
-            </div>
-        </div>
-
-        <div class="content-item section-title">2. Thực hiện lệnh</div>
-        <div class="content-item">2.1. Người chỉ huy trực tiếp (Người thi hành lệnh) (ký, ghi họ, tên):<input type="text" class="medium-input" style="width: 300px;">  Bậc ATĐ <input type="text" class="short-input">/5</div>
-        <div class="content-item">2.2. Người giám sát an toàn điện (ký, ghi họ, tên [nếu có]): <input type="text" class="medium-input" style="width: 250px;"> thuộc đơn vị (ghi tên đơn vị cử Người giám sát an toàn điện) <input type="text" class="medium-input" style="width: 300px;"></div>
-        <div class="content-item">2.3. Trình tự công việc và các điều kiện an toàn từ lúc bắt đầu đến lúc kết thúc công việc</div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 5%;">TT</th>
-                    <th style="width: 40%;">Trình tự công việc</th>
-                    <th style="width: 30%;">Các điều kiện an toàn</th>
-                    <th colspan="2">Thời gian</th>
-                </tr>
-                <tr>
-                    <th>&nbsp;</th>
-                    <th>&nbsp;</th>
-                    <th>&nbsp;</th>
-                    <th style="width: 12.5%;">Bắt đầu</th>
-                    <th style="width: 12.5%;">Kết thúc</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-                <tr>
-                    <td>...</td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                    <td><input type="text" class="full-width"></td>
-                </tr>
-            </tbody>
-        </table>
-
         <div class="content-item section-title">3. Kết thúc công tác</div>
-        <div class="content-item">Đơn vị công tác kết thúc, làm xong công việc lúc <input type="text" class="short-input"> giờ <input type="text" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
+        <div class="content-item">Đơn vị công tác kết thúc, làm xong công việc lúc <input type="text" id="gioKetThuc" class="short-input"> giờ <input type="text" id="phutKetThuc" class="short-input"> phút, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"></div>
         <div class="content-item">Người chỉ huy trực tiếp (Người thi hành lệnh) đã báo cho ông (bà):<input type="text" class="medium-input" style="width: 300px;"> Chức danh Người ra lệnh: <input type="text" class="medium-input" style="width: 250px;"></div>
         
         <div class="signature-area">
             <div class="signature-box">
                 <div class="signature-label">Người chỉ huy trực tiếp (Người thi hành lệnh)</div>
-                (ký và ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+                (ký và ghi họ, tên): <input type="text" id="nguoiChiHuyKetThuc" class="medium-input" style="width: 250px; text-align: center;" value="Nguyễn Văn A">
             </div>
             <div class="signature-box">
-                Đã kiểm tra hoàn thành Lệnh, ngày <input type="text" class="short-input">/<input type="text" class="short-input">/<input type="text" class="short-input"><br>
+                Đã kiểm tra hoàn thành Lệnh, ngày <input type="text" id="ngayKiemTra" class="short-input">/<input type="text" id="thangKiemTra" class="short-input">/<input type="text" id="namKiemTra" class="short-input"><br>
                 <div class="signature-label">Người ra lệnh công tác</div>
-                (ký và ghi họ, tên): <input type="text" class="medium-input" style="width: 250px; text-align: center;">
+                (ký và ghi họ, tên): <input type="text" id="nguoiRaLenhKetThuc" class="medium-input" style="width: 250px; text-align: center;" value="Trần Văn B">
             </div>
         </div>
 
         <div class="note">
-            Ghi chú: Tùy theo tổ chức sản xuất và điều kiện thực tế (có thể áp dụng mẫu điện tử, bản ghi âm,...), tổ chức, cá nhân tham gia hoạt động điện lực, sử dụng điện có thể ban hành hướng dẫn chi tiết việc thực hiện lệnh công tác nhưng không trái với quy định của Mẫu lệnh này.
+            Ghi chú: Tùy theo tổ chức sản xuất và điều kiện thực tế, tổ chức, cá nhân tham gia hoạt động điện lực, sử dụng điện có thể ban hành hướng dẫn chi tiết việc thực hiện lệnh công tác nhưng không trái với quy định của Mẫu lệnh này.
         </div>
         
-        <div style="text-align: center; margin-top: 20px;">
-            <button onclick="window.print()" style="padding: 10px 20px; font-size: 14pt; cursor: pointer;">In Lệnh Công Tác</button>
+        <div class="btn-group" style="text-align: center; margin-top: 20px;">
+            <button type="button" onclick="saveLenhCongTac()" style="background-color: #28a745; color: white;">💾 Lưu Lệnh Công Tác</button>
+            <button type="button" onclick="window.print()" style="background-color: #007bff; color: white;">🖨️ In Lệnh Công Tác</button>
         </div>
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
     </div>
+</form>
+
+<div class="container">
+    <div class="section-title">LỆNH CÔNG TÁC ĐÃ LƯU TRÊN FIREBASE</div>
+    <button type="button" onclick="loadLenhCongTac()" style="padding: 8px 15px; font-size: 11pt; cursor: pointer; background-color: #ffc107;">🔄 Tải lại danh sách</button>
+    <ul id="saved-permits-list">
+        </ul>
 </div>
 
+<script>
+    // -------------------------------------------------------------------------------------------------
+    // CẤU HÌNH VÀ KHỞI TẠO FIREBASE
+    // Vui lòng thay thế các giá trị này bằng thông tin cấu hình THỰC TẾ của dự án Firebase của bạn
+    // -------------------------------------------------------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Khởi tạo Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    const lenhCollection = db.collection('lenh_cong_tac');
+
+    // -------------------------------------------------------------------------------------------------
+    // CHỨC NĂNG LƯU LỆNH CÔNG TÁC
+    // -------------------------------------------------------------------------------------------------
+    async function saveLenhCongTac() {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.style.display = 'none';
+
+        // 1. Thu thập dữ liệu từ các trường input chính
+        const soLenh = document.getElementById('soLenh').value;
+        const noiDung = document.getElementById('noiDungA').value;
+        const diaDiem = document.getElementById('diaDiemA').value;
+        const nguoiChiHuy = document.getElementById('nguoiChiHuyA').value;
+        const nguoiRaLenh = document.getElementById('nguoiRaLenhA').value;
+        const bacATDA = document.getElementById('bacATDA').value;
+
+        // Xử lý thời gian bắt đầu (Đơn giản hóa: dùng chuỗi)
+        const timeStart = `${document.getElementById('gioBatDauA').value}:${document.getElementById('phutBatDauA').value} ngày ${document.getElementById('ngayBatDauA').value}/${document.getElementById('thangBatDauA').value}/${document.getElementById('namBatDauA').value}`;
+
+        if (!soLenh || !noiDung || !nguoiChiHuy) {
+            displayStatus('Vui lòng điền các trường Số Lệnh, Nội dung và Người chỉ huy.', 'error');
+            return;
+        }
+
+        // 2. Tạo đối tượng dữ liệu
+        const lenhData = {
+            so_lenh: soLenh,
+            nguoi_chi_huy: nguoiChiHuy,
+            nguoi_ra_lenh: nguoiRaLenh,
+            dia_diem: diaDiem,
+            noi_dung_cong_tac: noiDung,
+            bac_atd: bacATDA,
+            thoi_gian_bat_dau: timeStart,
+            thoi_gian_luu: firebase.firestore.FieldValue.serverTimestamp(),
+            trang_thai: "Đang Thực Hiện"
+            // Trong ứng dụng thực tế, bạn cần thu thập chi tiết tất cả các bảng và chữ ký.
+        };
+
+        // 3. Gửi lên Firestore
+        try {
+            const docRef = await lenhCollection.add(lenhData);
+            displayStatus(`Lệnh công tác số ${soLenh} đã được lưu thành công. ID: ${docRef.id}`, 'success');
+            // Sau khi lưu, tải lại danh sách
+            loadLenhCongTac();
+        } catch (e) {
+            console.error("Lỗi khi lưu tài liệu: ", e);
+            displayStatus("Lỗi khi lưu lệnh công tác. Vui lòng kiểm tra console log và cấu hình Firebase.", 'error');
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------
+    // CHỨC NĂNG TẢI VÀ HIỂN THỊ LỆNH CÔNG TÁC
+    // -------------------------------------------------------------------------------------------------
+    async function loadLenhCongTac() {
+        const listElement = document.getElementById('saved-permits-list');
+        listElement.innerHTML = '<li>Đang tải dữ liệu...</li>';
+
+        try {
+            // Lấy 10 lệnh công tác mới nhất
+            const snapshot = await lenhCollection.orderBy('thoi_gian_luu', 'desc').limit(10).get();
+
+            listElement.innerHTML = ''; // Xóa thông báo tải
+            
+            if (snapshot.empty) {
+                listElement.innerHTML = '<li>Chưa có lệnh công tác nào được lưu.</li>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const listItem = document.createElement('li');
+                
+                // Hiển thị thông tin tóm tắt
+                listItem.innerHTML = `
+                    <strong>Số Lệnh: ${data.so_lenh}</strong> | 
+                    Người CH: ${data.nguoi_chi_huy} (Bậc ${data.bac_atd}) | 
+                    Địa điểm: ${data.dia_diem}
+                    <br><small>(${data.noi_dung_cong_tac.substring(0, 50)}...)</small>
+                `;
+                listItem.setAttribute('data-doc-id', doc.id);
+                listItem.onclick = () => viewLenhCongTac(doc.id, data);
+                listElement.appendChild(listItem);
+            });
+        } catch (e) {
+            console.error("Lỗi khi tải tài liệu: ", e);
+            listElement.innerHTML = '<li>Lỗi khi kết nối hoặc tải dữ liệu từ Firebase.</li>';
+        }
+    }
+    
+    // -------------------------------------------------------------------------------------------------
+    // CHỨC NĂNG XEM CHI TIẾT LỆNH CÔNG TÁC
+    // -------------------------------------------------------------------------------------------------
+    function viewLenhCongTac(docId, data) {
+        // Hàm này có thể mở một cửa sổ modal hoặc điền lại dữ liệu vào form chính
+        // Ở đây, ta chỉ đơn giản hiển thị trong alert/console.
+        alert(`
+            Chi tiết Lệnh Công Tác (ID: ${docId}):
+            - Số Lệnh: ${data.so_lenh}
+            - Địa điểm: ${data.dia_diem}
+            - Người Chỉ Huy: ${data.nguoi_chi_huy}
+            - Nội dung: ${data.noi_dung_cong_tac}
+            - Thời gian bắt đầu: ${data.thoi_gian_bat_dau}
+            - Trạng thái: ${data.trang_thai}
+        `);
+    }
+
+    // -------------------------------------------------------------------------------------------------
+    // HÀM HIỂN THỊ THÔNG BÁO TRẠNG THÁI
+    // -------------------------------------------------------------------------------------------------
+    function displayStatus(message, type) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.textContent = message;
+        statusDiv.className = 'status-message ' + type;
+        statusDiv.style.display = 'block';
+    }
+
+    // Tự động tải danh sách khi trang được mở
+    window.onload = loadLenhCongTac;
+
+</script>
 </body>
 </html>
