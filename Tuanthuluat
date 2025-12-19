@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống đánh giá</title>
+    <style>
+        /* CSS cho giao diện */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #004d99; }
+        .header-blue { background-color: #004d99; color: white; padding: 10px; border-radius: 4px 4px 0 0; margin-bottom: 20px; }
+        .table-container { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #e6f0ff; color: #004d99; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .input-group input[type="text"], 
+        .input-group textarea,
+        .input-group input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-section { border: 1px solid #ccc; padding: 15px; border-radius: 4px; margin-top: 20px; }
+        .actions { text-align: right; margin-top: 20px; }
+        .actions button { padding: 10px 20px; background-color: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .actions button:hover { background-color: #0052a3; }
+    </style>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-blue">
+        1.1.2 - Người bán công tác An toàn, vệ sinh lao động (chuyên môn mình)
+    </div>
+
+    <h2>1. TÓM TẮT YÊU CẦU</h2>
+    <div class="table-container">
+        <table id="tóm_tắt_yêu_cầu">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Điều kiện 1</th>
+                    <th>Giới định</th>
+                    <th>Quy định 1</th>
+                    <th>Quy định 2</th>
+                    <th style="background-color: #ff0000; color: white;">Chế tài</th>
+                    <th style="background-color: #ff0000; color: white;">Hành chính</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nguồn làm công tác ATLĐS theo chế độ chuyên trách</td>
+                    <td><textarea id="dk1_chuyên_trách" rows="3">Em trình độ đại học thuộc các chuyên ngành An toàn kỹ thuật. Có kinh nghiệm hoặc chuyên môn các chuyên ngành thuộc khối kỹ thuật. Có trình độ và năng lực đào tạo các chuyên ngành An toàn kỹ thuật hoặc huấn luyện tập huấn các công việc kỹ thuật.</textarea></td>
+                    <td><input type="text" id="giới_định_chuyên_trách" value="10.000.000"></td>
+                    <td><textarea id="qd1_chuyên_trách" rows="3">Đơn vị trên 1000 người, nghiệm làm việc hơn 03 năm......</textarea></td>
+                    <td><textarea id="qd2_chuyên_trách" rows="3">Đơn vị trên 500 người, nghiệm làm việc hơn 03 năm...</textarea></td>
+                    <td><input type="text" id="chế_tài_chuyên_trách" value="20.000.000"></td>
+                    <td><input type="text" id="hc_chuyên_trách" value="10.000.000"></td>
+                </tr>
+                <tr>
+                    <td>Nguồn làm công tác ATLĐS theo chế độ bán chuyên trách</td>
+                    <td><textarea id="dk1_bán_chuyên_trách" rows="3">Em trình độ đại học thuộc các chuyên ngành An toàn kỹ thuật. Có kinh nghiệm hoặc chuyên môn các chuyên ngành thuộc khối kỹ thuật. Có trình độ và năng lực đào tạo các chuyên ngành An toàn kỹ thuật hoặc huấn luyện tập huấn các công việc kỹ thuật.</textarea></td>
+                    <td><input type="text" id="giới_định_bán_chuyên_trách" value="10.000.000"></td>
+                    <td><textarea id="qd1_bán_chuyên_trách" rows="3">Đơn vị trên 01 người, nghiệm làm việc hơn 03 năm...</textarea></td>
+                    <td><textarea id="qd2_bán_chuyên_trách" rows="3">Đơn vị trên 25 người, nghiệm làm việc hơn 03 năm...</textarea></td>
+                    <td><input type="text" id="chế_tài_bán_chuyên_trách" value="20.000.000"></td>
+                    <td><input type="text" id="hc_bán_chuyên_trách" value="10.000.000"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="form-section">
+        <h3>Hướng dẫn thực hiện</h3>
+        <div class="input-group">
+            <label>Mức phạt hành chính:</label>
+            <input type="text" id="mức_phạt_hc" value="10.000.000 - 20.000.000">
+        </div>
+        <div class="input-group">
+            <label>Hành động cần thực hiện:</label>
+            <textarea id="hành_động_thực_hiện" rows="2">C1 - Trích dẫn ý kiến Phỏng vấn người làm công tác Bảo hộ lao động tại KCN/T</textarea>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Ghi nhận thực hiện</h3>
+        <div class="input-group">
+            <label>Nội dung ghi nhận:</label>
+            <textarea id="ghi_nhận" rows="3">HSS làm việc ... (ĐKTĐ), (ĐKTK), (ĐKTL) ...</textarea>
+        </div>
+        <div class="input-group">
+            <label>Thời gian hoàn thành:</label>
+            <input type="date" id="tg_hoàn_thành" value="2025-12-30">
+        </div>
+    </div>
+
+    <div class="actions">
+        <button onclick="exportToExcel()">Xuất Dữ Liệu Theo Dõi (Excel)</button>
+    </div>
+</div>
+
+<script>
+    function exportToExcel() {
+        // 1. Thu thập dữ liệu từ các trường nhập liệu
+        const data = [
+            // Dữ liệu TÓM TẮT YÊU CẦU (Định dạng cho Excel)
+            {
+                'Danh Mục': 'Chuyên Trách - Điều kiện 1',
+                'Giá trị': document.getElementById('dk1_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Chuyên Trách - Giới định',
+                'Giá trị': document.getElementById('giới_định_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Chuyên Trách - Quy định 1',
+                'Giá trị': document.getElementById('qd1_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Chuyên Trách - Quy định 2',
+                'Giá trị': document.getElementById('qd2_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Chuyên Trách - Chế tài',
+                'Giá trị': document.getElementById('chế_tài_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Chuyên Trách - Hành chính',
+                'Giá trị': document.getElementById('hc_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Điều kiện 1',
+                'Giá trị': document.getElementById('dk1_bán_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Giới định',
+                'Giá trị': document.getElementById('giới_định_bán_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Quy định 1',
+                'Giá trị': document.getElementById('qd1_bán_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Quy định 2',
+                'Giá trị': document.getElementById('qd2_bán_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Chế tài',
+                'Giá trị': document.getElementById('chế_tài_bán_chuyên_trách').value
+            },
+            {
+                'Danh Mục': 'Bán Chuyên Trách - Hành chính',
+                'Giá trị': document.getElementById('hc_bán_chuyên_trách').value
+            },
+            // Dữ liệu Hướng dẫn và Hành động
+            {
+                'Danh Mục': 'Mức phạt hành chính',
+                'Giá trị': document.getElementById('mức_phạt_hc').value
+            },
+            {
+                'Danh Mục': 'Hành động cần thực hiện',
+                'Giá trị': document.getElementById('hành_động_thực_hiện').value
+            },
+            {
+                'Danh Mục': 'Nội dung ghi nhận',
+                'Giá trị': document.getElementById('ghi_nhận').value
+            },
+            {
+                'Danh Mục': 'Thời gian hoàn thành',
+                'Giá trị': document.getElementById('tg_hoàn_thành').value
+            }
+        ];
+
+        // 2. Chuyển đổi dữ liệu JSON sang định dạng SheetJS (Workbook)
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Dữ liệu theo dõi");
+
+        // 3. Xuất file Excel (.xlsx)
+        XLSX.writeFile(workbook, "Dữ_liệu_theo_dõi_" + new Date().toISOString().slice(0, 10) + ".xlsx");
+        
+        alert("Dữ liệu đã được xuất ra file Excel thành công!");
+    }
+</script>
+
+</body>
+</html>
