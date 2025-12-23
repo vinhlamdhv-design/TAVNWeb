@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHIẾU RA CỔNG - EXIT FORM</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 11pt;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-logo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .header-logo > div {
+            flex: 1;
+        }
+
+        .company-info {
+            font-size: 12pt;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .form-title {
+            text-align: center;
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .document-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            border: 1px solid #000;
+            padding: 5px;
+        }
+
+        .doc-item {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #000;
+            padding-right: 5px;
+        }
+        .doc-item:last-child {
+             border-right: none;
+        }
+
+        .doc-label {
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        .doc-value {
+            font-size: 10pt;
+        }
+        
+        .rect-title {
+            text-align: right;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .meta-data {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+
+        .meta-data label, .meta-data input {
+            margin-right: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .item-table th {
+            font-weight: bold;
+        }
+
+        .item-table input[type="text"], .item-table input[type="number"] {
+            width: 90%;
+            border: none;
+            text-align: center;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+        
+        .signature-table {
+            margin-top: 30px;
+        }
+
+        .signature-table th {
+            height: 50px; /* Chiều cao cho phần ký */
+            vertical-align: top;
+            padding-top: 5px;
+        }
+
+        .signature-table td {
+            height: 100px; /* Khoảng trống để ký tên */
+            vertical-align: bottom;
+            padding: 5px;
+            text-align: left;
+        }
+        
+        .sign-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .sign-date-input {
+            width: 80px;
+            border: none;
+            border-bottom: 1px dotted #000;
+            text-align: center;
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .actions button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 11pt;
+            cursor: pointer;
+        }
+
+        /* Ẩn các nút khi in */
+        @media print {
+            .actions, .meta-data input {
+                display: none;
+            }
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+            }
+            input {
+                border: none !important; /* Đảm bảo input không hiển thị viền khi in */
+            }
+            
+            /* Hiển thị rõ ràng các giá trị input khi in */
+            input[type="text"], input[type="number"] {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-logo">
+            <div class="company-info">
+                [cite_start]TA VIETNAM INDUSTRIES INC [cite: 16]<br>
+                [cite_start]TRUaire [cite: 9]<br>
+                [cite_start]CSW Industrials Companies [cite: 12]<br>
+                [cite_start]RECTORSEAL [cite: 2]
+            </div>
+            <div class="rect-title">
+                [cite_start]Mã tài liệu: TA-HSE-W103-F01 [cite: 10, 11]<br>
+                [cite_start]Phiên bản & Ngày hiệu lực: 04_03/06/2024 [cite: 7, 8]
+            </div>
+        </div>
+
+        <div class="form-title">
+            [cite_start]PHIẾU RA CỔNG / EXIT FORM [cite: 3, 4]
+        </div>
+
+        <div class="meta-data">
+            <label for="date">Ngày / Date:</label>
+            <input type="text" id="date" value="" readonly>
+
+            <label for="no">Số / No:</label>
+            <input type="text" id="no" value="TA-2024-.....">
+        </div>
+
+        <table class="item-table">
+            <thead>
+                <tr>
+                    [cite_start]<th style="width: 5%;">STT / No. [cite: 1]</th>
+                    [cite_start]<th style="width: 40%;">MẶT HÀNG / ITEMS [cite: 1]</th>
+                    [cite_start]<th style="width: 10%;">SỐ LƯỢNG / Q'TY [cite: 1]</th>
+                    [cite_start]<th style="width: 25%;">NGƯỜI MANG ĐI / TAKER [cite: 1]</th>
+                    [cite_start]<th style="width: 20%;">MỤC ĐÍCH / PURPOSE [cite: 1]</th>
+                </tr>
+            </thead>
+            <tbody id="items-body">
+                <tr>
+                    <td>1</td>
+                    <td><input type="text" name="item_name[]"></td>
+                    <td><input type="number" name="item_qty[]" min="1"></td>
+                    <td><input type="text" name="item_taker[]"></td>
+                    <td><input type="text" name="item_purpose[]"></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><input type="text" name="item_name[]"></td>
+                    <td><input type="number" name="item_qty[]" min="1"></td>
+                    <td><input type="text" name="item_taker[]"></td>
+                    <td><input type="text" name="item_purpose[]"></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><input type="text" name="item_name[]"></td>
+                    <td><input type="number" name="item_qty[]" min="1"></td>
+                    <td><input type="text" name="item_taker[]"></td>
+                    <td><input type="text" name="item_purpose[]"></td>
+                </tr>
+                </tbody>
+        </table>
+
+        <table class="signature-table">
+            <thead>
+                <tr>
+                    [cite_start]<th style="width: 25%;">NGƯỜI YÊU CẦU [cite: 15]</th>
+                    [cite_start]<th style="width: 25%;">NGƯỜI XEM XÉT [cite: 15]</th>
+                    [cite_start]<th style="width: 25%;">NGƯỜI PHÊ DUYỆT [cite: 15]</th>
+                    [cite_start]<th style="width: 25%;">BẢO VỆ XÁC NHẬN [cite: 15]</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="sign-block">
+                        [cite_start]<div class="sign-title">Ngày <input type="text" class="sign-date-input" id="ngay_yc"> tháng <input type="text" class="sign-date-input" id="thang_yc"> năm 20<input type="text" class="sign-date-input" id="nam_yc"> [cite: 15]</div>
+                        [cite_start]<div class="sign-title">Ký tên [cite: 15]</div>
+                        <br><br><br>
+                        </td>
+                    <td class="sign-block">
+                        <div class="sign-title">Ngày <input type="text" class="sign-date-input"> tháng <input type="text" class="sign-date-input"> năm 20<input type="text" class="sign-date-input"></div>
+                        <div class="sign-title">Ký tên</div>
+                        <br><br><br>
+                        </td>
+                    <td class="sign-block">
+                        <div class="sign-title">Ngày <input type="text" class="sign-date-input"> tháng <input type="text" class="sign-date-input"> năm 20<input type="text" class="sign-date-input"></div>
+                        <div class="sign-title">Ký tên</div>
+                        <br><br><br>
+                        </td>
+                    <td class="sign-block">
+                        [cite_start]<div class="sign-title">Ra lúc: <input type="text" class="sign-date-input"> giờ <input type="text" class="sign-date-input"> phút [cite: 15]</div>
+                        [cite_start]<div class="sign-title">Ký tên [cite: 15]</div>
+                        <br><br><br>
+                        </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button id="submitBtn">Gửi Yêu Cầu (Chức năng Backend)</button>
+            <button id="printBtn" onclick="window.print()">In Phiếu (Sau Phê Duyệt)</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('date');
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            
+            // Thiết lập ngày tháng hiện tại cho trường Date
+            dateInput.value = `${day}/${month}/${year}`;
+            
+            // Thiết lập ngày tháng hiện tại cho phần ký tên (Người Yêu Cầu)
+            document.getElementById('ngay_yc').value = day;
+            document.getElementById('thang_yc').value = month;
+            document.getElementById('nam_yc').value = String(year).slice(-2);
+
+            document.getElementById('submitBtn').addEventListener('click', function() {
+                alert('Chức năng này cần một hệ thống backend để xử lý việc gửi dữ liệu và quy trình phê duyệt.');
+                // Ở đây, bạn sẽ dùng JavaScript để thu thập dữ liệu form và gửi đến API của backend
+            });
+        });
+    </script>
+</body>
+</html>
