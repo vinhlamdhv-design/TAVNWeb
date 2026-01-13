@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Điểm Danh QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #007bff; text-align: center; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; margin-top: 15px; font-size: 16px; }
+        button:hover { background: #218838; }
+        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
+        .hidden { display: none; }
+        .info-box { background: #e9ecef; padding: 10px; border-radius: 4px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="admin-section" class="container">
+    <h2>Tạo Mã QR Đào Tạo</h2>
+    <label>Chọn Lớp Học:</label>
+    <select id="classSelect" onchange="generateQR()">
+        <option value="">-- Chọn lớp --</option>
+        <option value="HSE01|Huấn luyện an toàn hóa chất">HSE01 - Huấn luyện an toàn hóa chất</option>
+        <option value="HSE02|An toàn không gian hạn chế">HSE02 - An toàn không gian hạn chế</option>
+        <option value="HSE03|An toàn giám sát nhà thầu">HSE03 - An toàn giám sát nhà thầu</option>
+    </select>
+    
+    <div id="qrcode"></div>
+    <p style="text-align:center; font-size: 12px; color: #666;">Quét mã này để điểm danh</p>
+    <button onclick="showCheckin()">Giả lập quét mã (Dành cho Demo)</button>
+</div>
+
+<div id="checkin-section" class="container hidden">
+    <h2>Xác Nhận Tham Gia Lớp</h2>
+    <div class="info-box">
+        <p><strong>Mã lớp:</strong> <span id="displayMaLop"></span></p>
+        <p><strong>Tên lớp:</strong> <span id="displayTenLop"></span></p>
+    </div>
+
+    <label>Mã Số Nhân Viên (MSNV):</label>
+    <input type="text" id="msnv" placeholder="Nhập MSNV của bạn..." oninput="lookupName()">
+    
+    <label>Họ và Tên:</label>
+    <input type="text" id="fullname" readonly placeholder="Tên sẽ tự động hiển thị..." style="background: #eee;">
+
+    <button onclick="submitAttendance()">XÁC NHẬN THAM GIA</button>
+    <button onclick="location.reload()" style="background: #6c757d;">Quay lại</button>
+</div>
+
+<script>
+    // Dữ liệu giả lập nhân viên (Thực tế nên lấy từ database/Google Sheets)
+    const employeeDB = {
+        "NV001": "Nguyễn Văn A",
+        "NV002": "Trần Thị B",
+        "NV003": "Lê Văn C"
+    };
+
+    const qrcodeDiv = document.getElementById("qrcode");
+    const qr = new QRCode(qrcodeDiv, { width: 200, height: 200 });
+
+    function generateQR() {
+        const val = document.getElementById("classSelect").value;
+        if (val) {
+            qr.clear();
+            // URL thực tế của bạn khi upload file này lên mạng:
+            const currentUrl = window.location.href.split('?')[0];
+            qr.makeCode(currentUrl + "?data=" + encodeURIComponent(val));
+        }
+    }
+
+    // Xử lý khi quét mã (Đọc từ URL)
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('data');
+        if (data) {
+            const [maLop, tenLop] = data.split('|');
+            document.getElementById("admin-section").classList.add("hidden");
+            document.getElementById("checkin-section").classList.remove("hidden");
+            document.getElementById("displayMaLop").innerText = maLop;
+            document.getElementById("displayTenLop").innerText = tenLop;
+        }
+    }
+
+    function lookupName() {
+        const msnv = document.getElementById("msnv").value.toUpperCase();
+        const nameInput = document.getElementById("fullname");
+        nameInput.value = employeeDB[msnv] || "";
+    }
+
+    function submitAttendance() {
+        const msnv = document.getElementById("msnv").value;
+        const name = document.getElementById("fullname").value;
+        const lop = document.getElementById("displayTenLop").innerText;
+
+        if (!name) {
+            alert("Vui lòng nhập đúng MSNV!");
+            return;
+        }
+
+        alert(`Thành công! Nhân viên ${name} (${msnv}) đã điểm danh lớp ${lop}`);
+        // Tại đây bạn có thể dùng Fetch API để gửi dữ liệu về Google Sheets
+    }
+
+    function showCheckin() {
+        const val = document.getElementById("classSelect").value;
+        if(!val) return alert("Hãy chọn lớp trước");
+        window.location.href = window.location.href.split('?')[0] + "?data=" + encodeURIComponent(val);
+    }
+</script>
+</body>
+</html>
