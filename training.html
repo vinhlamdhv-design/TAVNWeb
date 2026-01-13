@@ -3,113 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Điểm Danh QR Code</title>
+    <title>Hệ Thống Tạo QR & Điểm Danh</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { color: #007bff; text-align: center; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { background: #28a745; color: white; border: none; cursor: pointer; margin-top: 15px; font-size: 16px; }
-        button:hover { background: #218838; }
-        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; margin-bottom: 20px; }
+        h2 { color: #1a73e8; text-align: center; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-generate { background: #1a73e8; color: white; }
+        .btn-generate:hover { background: #1557b0; }
+        .btn-confirm { background: #28a745; color: white; margin-top: 15px; }
+        #qrcode { margin-top: 20px; display: flex; justify-content: center; padding: 10px; background: #fff; }
         .hidden { display: none; }
-        .info-box { background: #e9ecef; padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .info-card { background: #f8f9fa; border-left: 5px solid #1a73e8; padding: 15px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div id="admin-section" class="container">
-    <h2>Tạo Mã QR Đào Tạo</h2>
-    <label>Chọn Lớp Học:</label>
-    <select id="classSelect" onchange="generateQR()">
-        <option value="">-- Chọn lớp --</option>
-        <option value="HSE01|Huấn luyện an toàn hóa chất">HSE01 - Huấn luyện an toàn hóa chất</option>
-        <option value="HSE02|An toàn không gian hạn chế">HSE02 - An toàn không gian hạn chế</option>
-        <option value="HSE03|An toàn giám sát nhà thầu">HSE03 - An toàn giám sát nhà thầu</option>
-    </select>
+    <h2>Tạo QR Lớp Học</h2>
+    <div class="form-group">
+        <label>Mã lớp:</label>
+        <input type="text" id="inputMaLop" placeholder="Ví dụ: HSE01">
+    </div>
+    <div class="form-group">
+        <label>Tên lớp đào tạo:</label>
+        <input type="text" id="inputTenLop" placeholder="Ví dụ: Huấn luyện an toàn hóa chất">
+    </div>
+    <div class="form-group">
+        <label>Người đào tạo:</label>
+        <input type="text" id="inputGiangVien" placeholder="Nhập tên giảng viên">
+    </div>
+    <div class="form-group">
+        <label>Ngày tổ chức:</label>
+        <input type="date" id="inputNgay">
+    </div>
+    
+    <button class="btn-generate" onclick="generateQR()">TẠO MÃ QR ĐIỂM DANH</button>
     
     <div id="qrcode"></div>
-    <p style="text-align:center; font-size: 12px; color: #666;">Quét mã này để điểm danh</p>
-    <button onclick="showCheckin()">Giả lập quét mã (Dành cho Demo)</button>
+    <p id="qr-note" style="text-align:center; display:none; color: #666; font-size: 13px;">Nhân viên quét mã này để bắt đầu điểm danh</p>
 </div>
 
 <div id="checkin-section" class="container hidden">
-    <h2>Xác Nhận Tham Gia Lớp</h2>
-    <div class="info-box">
-        <p><strong>Mã lớp:</strong> <span id="displayMaLop"></span></p>
-        <p><strong>Tên lớp:</strong> <span id="displayTenLop"></span></p>
+    <h2>Điểm Danh Học Viên</h2>
+    <div class="info-card">
+        <p><strong>Lớp:</strong> <span id="dispTen"></span> (<span id="dispMa"></span>)</p>
+        <p><strong>Giảng viên:</strong> <span id="dispGV"></span></p>
+        <p><strong>Ngày:</strong> <span id="dispNgay"></span></p>
     </div>
 
-    <label>Mã Số Nhân Viên (MSNV):</label>
-    <input type="text" id="msnv" placeholder="Nhập MSNV của bạn..." oninput="lookupName()">
-    
-    <label>Họ và Tên:</label>
-    <input type="text" id="fullname" readonly placeholder="Tên sẽ tự động hiển thị..." style="background: #eee;">
+    <div class="form-group">
+        <label>Mã Số Nhân Viên (MSNV):</label>
+        <input type="text" id="msnv" placeholder="Nhập MSNV..." oninput="lookupEmployee()">
+    </div>
+    <div class="form-group">
+        <label>Họ và Tên:</label>
+        <input type="text" id="fullname" readonly style="background: #e9ecef;" placeholder="Tên nhân viên sẽ hiện ở đây">
+    </div>
 
-    <button onclick="submitAttendance()">XÁC NHẬN THAM GIA</button>
-    <button onclick="location.reload()" style="background: #6c757d;">Quay lại</button>
+    <button class="btn-confirm" onclick="submitData()">XÁC NHẬN ĐIỂM DANH</button>
 </div>
 
 <script>
-    // Dữ liệu giả lập nhân viên (Thực tế nên lấy từ database/Google Sheets)
-    const employeeDB = {
-        "NV001": "Nguyễn Văn A",
-        "NV002": "Trần Thị B",
-        "NV003": "Lê Văn C"
+    // Dữ liệu mẫu nhân viên để kiểm tra tính năng tự động hiển thị tên
+    const employees = {
+        "12345": "Nguyễn Văn An",
+        "67890": "Trần Thị Bình",
+        "55555": "Lê Văn Cường"
     };
 
-    const qrcodeDiv = document.getElementById("qrcode");
-    const qr = new QRCode(qrcodeDiv, { width: 200, height: 200 });
+    const qrcodeContainer = document.getElementById("qrcode");
+    let qr = new QRCode(qrcodeContainer, { width: 200, height: 200 });
 
     function generateQR() {
-        const val = document.getElementById("classSelect").value;
-        if (val) {
-            qr.clear();
-            // URL thực tế của bạn khi upload file này lên mạng:
-            const currentUrl = window.location.href.split('?')[0];
-            qr.makeCode(currentUrl + "?data=" + encodeURIComponent(val));
-        }
+        const ma = document.getElementById("inputMaLop").value;
+        const ten = document.getElementById("inputTenLop").value;
+        const gv = document.getElementById("inputGiangVien").value;
+        const ngay = document.getElementById("inputNgay").value;
+
+        if (!ma || !ten) return alert("Vui lòng nhập ít nhất Mã lớp và Tên lớp!");
+
+        // Tạo chuỗi dữ liệu để gắn vào URL
+        const dataString = `ma=${encodeURIComponent(ma)}&ten=${encodeURIComponent(ten)}&gv=${encodeURIComponent(gv)}&ngay=${encodeURIComponent(ngay)}`;
+        const currentUrl = window.location.href.split('?')[0];
+        
+        qr.clear();
+        qr.makeCode(currentUrl + "?" + dataString);
+        document.getElementById("qr-note").style.display = "block";
     }
 
-    // Xử lý khi quét mã (Đọc từ URL)
+    // Tự động xử lý khi quét mã (Đọc tham số từ URL)
     window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const data = urlParams.get('data');
-        if (data) {
-            const [maLop, tenLop] = data.split('|');
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('ma')) {
             document.getElementById("admin-section").classList.add("hidden");
             document.getElementById("checkin-section").classList.remove("hidden");
-            document.getElementById("displayMaLop").innerText = maLop;
-            document.getElementById("displayTenLop").innerText = tenLop;
+            
+            document.getElementById("dispMa").innerText = params.get('ma');
+            document.getElementById("dispTen").innerText = params.get('ten');
+            document.getElementById("dispGV").innerText = params.get('gv') || "---";
+            document.getElementById("dispNgay").innerText = params.get('ngay') || "---";
         }
     }
 
-    function lookupName() {
-        const msnv = document.getElementById("msnv").value.toUpperCase();
-        const nameInput = document.getElementById("fullname");
-        nameInput.value = employeeDB[msnv] || "";
+    function lookupEmployee() {
+        const id = document.getElementById("msnv").value.trim();
+        document.getElementById("fullname").value = employees[id] || "";
     }
 
-    function submitAttendance() {
-        const msnv = document.getElementById("msnv").value;
+    function submitData() {
         const name = document.getElementById("fullname").value;
-        const lop = document.getElementById("displayTenLop").innerText;
-
-        if (!name) {
-            alert("Vui lòng nhập đúng MSNV!");
-            return;
-        }
-
-        alert(`Thành công! Nhân viên ${name} (${msnv}) đã điểm danh lớp ${lop}`);
-        // Tại đây bạn có thể dùng Fetch API để gửi dữ liệu về Google Sheets
-    }
-
-    function showCheckin() {
-        const val = document.getElementById("classSelect").value;
-        if(!val) return alert("Hãy chọn lớp trước");
-        window.location.href = window.location.href.split('?')[0] + "?data=" + encodeURIComponent(val);
+        if (!name) return alert("Không tìm thấy nhân viên. Vui lòng kiểm tra lại MSNV!");
+        
+        alert("Xác nhận thành công!\nNhân viên: " + name + "\nĐã tham gia lớp học.");
+        // Tại đây bạn có thể tích hợp API gửi dữ liệu lên Google Sheet
     }
 </script>
 </body>
