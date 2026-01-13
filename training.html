@@ -18,8 +18,8 @@
         .btn-test { background: var(--test); color: white; text-decoration: none; display: none; text-align: center; padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: 0.3s; }
         #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; border-radius: 8px; }
         .hidden { display: none; }
-        .info-card { background: #e8f0fe; border-left: 5px solid var(--primary); padding: 15px; border-radius: 4px; }
-        .success-msg { color: var(--success); font-weight: bold; text-align: center; margin-top: 10px; display: none; }
+        .info-card { background: #e8f0fe; border-left: 5px solid var(--primary); padding: 15px; border-radius: 4px; line-height: 1.6; }
+        .success-msg { color: var(--success); font-weight: bold; text-align: center; margin-top: 10px; display: none; padding: 10px; border: 1px solid var(--success); border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -32,11 +32,15 @@
     </div>
     <div class="form-group">
         <label>Tên lớp đào tạo:</label>
-        <input type="text" id="inputTenLop" placeholder="VD: An toàn vệ sinh lao động">
+        <input type="text" id="inputTenLop" placeholder="VD: An toàn hóa chất">
+    </div>
+    <div class="form-group">
+        <label>Ngày đào tạo:</label>
+        <input type="date" id="inputNgay">
     </div>
     <div class="form-group">
         <label>Link bài kiểm tra (Google Form...):</label>
-        <input type="url" id="inputLinkTest" placeholder="https://forms.gle/...">
+        <input type="url" id="inputLinkTest" placeholder="https://forms.gle/abcxyz">
     </div>
     <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex:1">
@@ -53,6 +57,7 @@
     <div id="qrcode" class="hidden">
         <div id="qr-canvas"></div>
         <p id="qrMaHienThi" style="margin-top:10px; font-weight:bold; color:var(--primary)"></p>
+        <p style="font-size: 11px; color: #666;">(Chụp ảnh mã này gửi cho học viên)</p>
     </div>
 </div>
 
@@ -61,83 +66,121 @@
     <div class="info-card">
         <p><strong>Lớp:</strong> <span id="dispTen"></span></p>
         <p><strong>Mã:</strong> <span id="dispMa"></span></p>
+        <p><strong>Ngày:</strong> <span id="dispNgay"></span></p>
         <p><strong>Giờ học:</strong> <span id="dispTime"></span></p>
     </div>
 
     <div style="margin-top: 20px;">
         <label>Mã Số Nhân Viên (MSNV):</label>
-        <input type="text" id="msnv" placeholder="Nhập MSNV..." oninput="lookupEmployee()">
-        <label style="margin-top:10px;">Họ tên:</label>
-        <input type="text" id="fullname" readonly style="background:#f1f3f4">
+        <input type="text" id="msnv" placeholder="Nhập MSNV (VD: NV001)..." onkeyup="lookupEmployee()">
+        
+        <label style="margin-top:15px;">Họ tên nhân viên:</label>
+        <input type="text" id="fullname" readonly style="background:#eee; font-weight: bold; color: #333;" placeholder="Tên sẽ hiện khi nhập đúng MSNV">
     </div>
 
     <button id="btnConfirm" class="btn-confirm" onclick="confirmAttendance()">XÁC NHẬN ĐIỂM DANH</button>
     
-    <div id="successMsg" class="success-msg">✓ Đã điểm danh thành công!</div>
+    <div id="successMsg" class="success-msg">✓ Bạn đã điểm danh thành công!</div>
     
-    <a id="linkTest" href="#" target="_blank" class="btn-test">LÀM BÀI KIỂM TRA THU HOẠCH</a>
+    <a id="linkTest" href="#" target="_blank" class="btn-test">BẤM VÀO ĐÂY ĐỂ LÀM BÀI THI</a>
 </div>
 
 <script>
-    // Tự động tạo mã lớp duy nhất
+    // Danh sách nhân viên mẫu (Bạn có thể thêm tiếp vào đây)
+    const employees = { 
+        "NV001": "Nguyễn Vinh Lam", 
+        "NV002": "Chí Tắc Phúc", 
+        "NV003": "Trần Anh Tuấn",
+        "HSE01": "Lê Thị An"
+    };
+
     window.onload = function() {
+        // 1. Tạo mã lớp ngẫu nhiên khi mới mở trang
         const timestamp = Date.now().toString().slice(-6);
         document.getElementById("inputMaLop").value = "HSE-" + timestamp;
         
+        // 2. Kiểm tra nếu đang truy cập từ link mã QR
         const params = new URLSearchParams(window.location.search);
         if (params.has('ma')) {
             document.getElementById("admin-section").classList.add("hidden");
             document.getElementById("checkin-section").classList.remove("hidden");
+            
             document.getElementById("dispMa").innerText = params.get('ma');
             document.getElementById("dispTen").innerText = params.get('ten');
+            document.getElementById("dispNgay").innerText = params.get('ngay');
             document.getElementById("dispTime").innerText = params.get('start') + " - " + params.get('end');
-            // Gán link test vào nút nhưng chưa cho hiện
-            document.getElementById("linkTest").href = params.get('link') || "#";
+            
+            // Gán link bài thi vào thẻ A nhưng chưa cho hiện nút
+            const testUrl = params.get('link');
+            if (testUrl && testUrl !== "undefined" && testUrl !== "") {
+                document.getElementById("linkTest").href = testUrl;
+            }
         }
     };
 
-    let qr = new QRCode(document.getElementById("qr-canvas"), { width: 180, height: 180 });
+    // Khởi tạo QR
+    let qrCanvas = document.getElementById("qr-canvas");
+    let qr = new QRCode(qrCanvas, { width: 200, height: 200 });
 
     function generateQR() {
         const ma = document.getElementById("inputMaLop").value;
         const ten = document.getElementById("inputTenLop").value;
+        const ngay = document.getElementById("inputNgay").value;
         const link = document.getElementById("inputLinkTest").value;
         const start = document.getElementById("timeStart").value;
         const end = document.getElementById("timeEnd").value;
 
-        if (!ten || !start || !end) return alert("Vui lòng nhập tên lớp và thời gian!");
+        if (!ten || !ngay || !start || !end) {
+            alert("Vui lòng nhập đầy đủ: Tên lớp, Ngày và Thời gian!");
+            return;
+        }
 
-        // Đóng gói link test vào QR
-        const dataString = `ma=${ma}&ten=${encodeURIComponent(ten)}&start=${start}&end=${end}&link=${encodeURIComponent(link)}`;
+        // Tạo chuỗi truy vấn dữ liệu
+        const dataString = `ma=${ma}&ten=${encodeURIComponent(ten)}&ngay=${ngay}&start=${start}&end=${end}&link=${encodeURIComponent(link)}`;
+        
+        // Tạo link dẫn tới chính trang này kèm data
         const currentUrl = window.location.href.split('?')[0];
+        const finalUrl = currentUrl + "?" + dataString;
         
         qr.clear();
-        qr.makeCode(currentUrl + "?" + dataString);
+        qr.makeCode(finalUrl);
+        
         document.getElementById("qrcode").classList.remove("hidden");
         document.getElementById("qrMaHienThi").innerText = "LỚP: " + ma;
+        alert("Đã tạo mã QR thành công!");
     }
 
-    const employees = { "NV001": "Nguyễn Vinh Lam", "NV002": "Chí Tắc Phúc", "NV003": "Trần Anh Tuấn" };
-
+    // Tự động tìm tên khi nhập MSNV
     function lookupEmployee() {
-        const id = document.getElementById("msnv").value.toUpperCase();
-        document.getElementById("fullname").value = employees[id] || "";
+        const id = document.getElementById("msnv").value.trim().toUpperCase();
+        const nameField = document.getElementById("fullname");
+        
+        if (employees[id]) {
+            nameField.value = employees[id];
+            nameField.style.color = "green";
+        } else {
+            nameField.value = "";
+            nameField.placeholder = "Đang tìm mã nhân viên...";
+        }
     }
 
     function confirmAttendance() {
         const name = document.getElementById("fullname").value;
-        if (!name) return alert("MSNV không hợp lệ!");
+        if (!name) {
+            alert("Vui lòng nhập mã số nhân viên hợp lệ trước khi điểm danh!");
+            return;
+        }
 
-        // 1. Hiện thông báo thành công
+        // Hiện thông báo thành công
         document.getElementById("successMsg").style.display = "block";
         document.getElementById("btnConfirm").style.display = "none";
 
-        // 2. Hiện nút làm bài kiểm tra (nếu có link)
+        // Kiểm tra xem có link bài thi không để hiện nút
         const testBtn = document.getElementById("linkTest");
         if (testBtn.href.includes("http")) {
             testBtn.style.display = "block";
         } else {
-            alert("Điểm danh thành công! (Lớp này không có bài kiểm tra)");
+            alert("Bạn đã điểm danh thành công!");
         }
     }
 </script>
