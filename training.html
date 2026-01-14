@@ -6,7 +6,7 @@
     <title>Hệ Thống Đào Tạo & Kiểm Tra HSE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #28a745; --test: #e67e22; --bg: #f8f9fa; }
+        :root { --primary: #1a73e8; --success: #28a745; --test: #e67e22; --bg: #f8f9fa; --danger: #dc3545; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; }
         h2 { color: var(--primary); text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
@@ -16,10 +16,20 @@
         .btn-generate { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-confirm { background: var(--success); color: white; border: none; width: 100%; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-test { background: var(--test); color: white; text-decoration: none; display: none; text-align: center; padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: 0.3s; }
-        #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; border-radius: 8px; }
+        #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; border-radius: 8px; background: #fff; }
         .hidden { display: none; }
         .info-card { background: #e8f0fe; border-left: 5px solid var(--primary); padding: 15px; border-radius: 4px; line-height: 1.6; }
         .success-msg { color: var(--success); font-weight: bold; text-align: center; margin-top: 10px; display: none; padding: 10px; border: 1px solid var(--success); border-radius: 4px; }
+        
+        /* CSS cho phần Lịch sử */
+        .history-section { margin-top: 20px; width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .history-item:last-child { border-bottom: none; }
+        .history-info { font-size: 13px; }
+        .history-btns { display: flex; gap: 5px; }
+        .btn-small { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; color: white; }
+        .btn-view { background: var(--primary); }
+        .btn-del { background: var(--danger); }
     </style>
 </head>
 <body>
@@ -61,6 +71,15 @@
     </div>
 </div>
 
+<div id="history-section" class="history-section">
+    <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; display: flex; justify-content: space-between;">
+        Lịch sử đã tạo
+        <button onclick="clearHistory()" style="font-size: 10px; background: none; border: 1px solid #ccc; cursor: pointer; padding: 2px 5px; border-radius: 3px;">Xóa hết</button>
+    </h3>
+    <div id="history-list">
+        </div>
+</div>
+
 <div id="checkin-section" class="container hidden">
     <h2>Thông Tin Lớp Học</h2>
     <div class="info-card">
@@ -79,14 +98,11 @@
     </div>
 
     <button id="btnConfirm" class="btn-confirm" onclick="confirmAttendance()">XÁC NHẬN ĐIỂM DANH</button>
-    
     <div id="successMsg" class="success-msg">✓ Bạn đã điểm danh thành công!</div>
-    
     <a id="linkTest" href="#" target="_blank" class="btn-test">BẤM VÀO ĐÂY ĐỂ LÀM BÀI THI</a>
 </div>
 
 <script>
-    // Danh sách nhân viên mẫu (Bạn có thể thêm tiếp vào đây)
     const employees = { 
         "NV001": "Nguyễn Vinh Lam", 
         "NV002": "Chí Tắc Phúc", 
@@ -94,15 +110,24 @@
         "HSE01": "Lê Thị An"
     };
 
+    let qr;
+
     window.onload = function() {
-        // 1. Tạo mã lớp ngẫu nhiên khi mới mở trang
-        const timestamp = Date.now().toString().slice(-6);
-        document.getElementById("inputMaLop").value = "HSE-" + timestamp;
+        // Khởi tạo QR
+        let qrCanvas = document.getElementById("qr-canvas");
+        qr = new QRCode(qrCanvas, { width: 200, height: 200 });
+
+        // 1. Tạo mã lớp ngẫu nhiên
+        resetMaLop();
         
-        // 2. Kiểm tra nếu đang truy cập từ link mã QR
+        // 2. Load lịch sử
+        renderHistory();
+
+        // 3. Kiểm tra nếu đang truy cập từ link mã QR
         const params = new URLSearchParams(window.location.search);
         if (params.has('ma')) {
             document.getElementById("admin-section").classList.add("hidden");
+            document.getElementById("history-section").classList.add("hidden");
             document.getElementById("checkin-section").classList.remove("hidden");
             
             document.getElementById("dispMa").innerText = params.get('ma');
@@ -110,7 +135,6 @@
             document.getElementById("dispNgay").innerText = params.get('ngay');
             document.getElementById("dispTime").innerText = params.get('start') + " - " + params.get('end');
             
-            // Gán link bài thi vào thẻ A nhưng chưa cho hiện nút
             const testUrl = params.get('link');
             if (testUrl && testUrl !== "undefined" && testUrl !== "") {
                 document.getElementById("linkTest").href = testUrl;
@@ -118,9 +142,10 @@
         }
     };
 
-    // Khởi tạo QR
-    let qrCanvas = document.getElementById("qr-canvas");
-    let qr = new QRCode(qrCanvas, { width: 200, height: 200 });
+    function resetMaLop() {
+        const timestamp = Date.now().toString().slice(-6);
+        document.getElementById("inputMaLop").value = "HSE-" + timestamp;
+    }
 
     function generateQR() {
         const ma = document.getElementById("inputMaLop").value;
@@ -135,10 +160,7 @@
             return;
         }
 
-        // Tạo chuỗi truy vấn dữ liệu
         const dataString = `ma=${ma}&ten=${encodeURIComponent(ten)}&ngay=${ngay}&start=${start}&end=${end}&link=${encodeURIComponent(link)}`;
-        
-        // Tạo link dẫn tới chính trang này kèm data
         const currentUrl = window.location.href.split('?')[0];
         const finalUrl = currentUrl + "?" + dataString;
         
@@ -147,14 +169,87 @@
         
         document.getElementById("qrcode").classList.remove("hidden");
         document.getElementById("qrMaHienThi").innerText = "LỚP: " + ma;
+
+        // Lưu vào lịch sử
+        saveToHistory({ ma, ten, ngay, start, end, link, finalUrl });
         alert("Đã tạo mã QR thành công!");
     }
 
-    // Tự động tìm tên khi nhập MSNV
+    // --- CÁC HÀM XỬ LÝ LỊCH SỬ ---
+    function saveToHistory(item) {
+        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
+        // Kiểm tra nếu mã lớp đã tồn tại thì cập nhật, không thì thêm mới đầu danh sách
+        const index = history.findIndex(h => h.ma === item.ma);
+        if (index > -1) history[index] = item;
+        else history.unshift(item);
+        
+        localStorage.setItem("hse_history", JSON.stringify(history));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
+        const listBody = document.getElementById("history-list");
+        
+        if (history.length === 0) {
+            listBody.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>Chưa có lịch sử tạo mã.</p>";
+            return;
+        }
+
+        listBody.innerHTML = history.map((item, index) => `
+            <div class="history-item">
+                <div class="history-info">
+                    <strong>${item.ma}</strong> - ${item.ten}<br>
+                    <small>${item.ngay} | ${item.start}-${item.end}</small>
+                </div>
+                <div class="history-btns">
+                    <button class="btn-small btn-view" onclick="viewAgain(${index})">Xem lại</button>
+                    <button class="btn-small btn-del" onclick="deleteHistory(${index})">Xóa</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function viewAgain(index) {
+        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
+        const item = history[index];
+        
+        // Điền lại thông tin vào form
+        document.getElementById("inputMaLop").value = item.ma;
+        document.getElementById("inputTenLop").value = item.ten;
+        document.getElementById("inputNgay").value = item.ngay;
+        document.getElementById("inputLinkTest").value = item.link;
+        document.getElementById("timeStart").value = item.start;
+        document.getElementById("timeEnd").value = item.end;
+        
+        // Tạo lại QR
+        qr.clear();
+        qr.makeCode(item.finalUrl);
+        document.getElementById("qrcode").classList.remove("hidden");
+        document.getElementById("qrMaHienThi").innerText = "LỚP: " + item.ma;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteHistory(index) {
+        if(confirm("Xóa lịch sử lớp này?")) {
+            let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
+            history.splice(index, 1);
+            localStorage.setItem("hse_history", JSON.stringify(history));
+            renderHistory();
+        }
+    }
+
+    function clearHistory() {
+        if(confirm("Bạn muốn xóa toàn bộ lịch sử?")) {
+            localStorage.removeItem("hse_history");
+            renderHistory();
+        }
+    }
+
+    // --- HÀM CŨ ---
     function lookupEmployee() {
         const id = document.getElementById("msnv").value.trim().toUpperCase();
         const nameField = document.getElementById("fullname");
-        
         if (employees[id]) {
             nameField.value = employees[id];
             nameField.style.color = "green";
@@ -170,12 +265,8 @@
             alert("Vui lòng nhập mã số nhân viên hợp lệ trước khi điểm danh!");
             return;
         }
-
-        // Hiện thông báo thành công
         document.getElementById("successMsg").style.display = "block";
         document.getElementById("btnConfirm").style.display = "none";
-
-        // Kiểm tra xem có link bài thi không để hiện nút
         const testBtn = document.getElementById("linkTest");
         if (testBtn.href.includes("http")) {
             testBtn.style.display = "block";
