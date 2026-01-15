@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Đào Tạo & Kiểm Tra HSE</title>
+    <title>Hệ Thống Quản Lý Đào Tạo HSE</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --primary: #1a73e8; --success: #28a745; --test: #e67e22; --bg: #f8f9fa; --danger: #dc3545; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin-bottom: 20px; }
+        .full-width { max-width: 95%; width: 95%; }
         h2 { color: var(--primary); text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #444; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .btn-generate { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-confirm { background: var(--success); color: white; border: none; width: 100%; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-test { background: var(--test); color: white; text-decoration: none; display: none; text-align: center; padding: 15px; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: 0.3s; }
-        #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; border-radius: 8px; background: #fff; }
-        .hidden { display: none; }
-        .info-card { background: #e8f0fe; border-left: 5px solid var(--primary); padding: 15px; border-radius: 4px; line-height: 1.6; }
-        .success-msg { color: var(--success); font-weight: bold; text-align: center; margin-top: 10px; display: none; padding: 10px; border: 1px solid var(--success); border-radius: 4px; }
         
-        /* CSS cho phần Lịch sử */
-        .history-section { margin-top: 20px; width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .history-item:last-child { border-bottom: none; }
-        .history-info { font-size: 13px; }
-        .history-btns { display: flex; gap: 5px; }
-        .btn-small { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; color: white; }
-        .btn-view { background: var(--primary); }
-        .btn-del { background: var(--danger); }
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th { background: #00a2e8; color: white; padding: 10px; border: 1px solid #ddd; }
+        td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .success-text { color: var(--success); font-weight: bold; }
+        .hidden { display: none; }
+        #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; background: #fff; }
     </style>
 </head>
 <body>
@@ -42,15 +38,25 @@
     </div>
     <div class="form-group">
         <label>Tên lớp đào tạo:</label>
-        <input type="text" id="inputTenLop" placeholder="VD: An toàn hóa chất">
+        <input type="text" id="inputTenLop" placeholder="VD: Huấn luyện an toàn hóa chất">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <div class="form-group" style="flex:1">
+            <label>Người đào tạo:</label>
+            <select id="inputNguoiDaoTao">
+                <option value="Chí Tắc Phúc">Chí Tắc Phúc</option>
+                <option value="Nguyễn Vinh Lam">Nguyễn Vinh Lam</option>
+                <option value="Giảng viên bên ngoài">Giảng viên bên ngoài</option>
+            </select>
+        </div>
+        <div class="form-group" style="flex:1">
+            <label>Số lượng dự kiến:</label>
+            <input type="number" id="inputDuKien" value="30">
+        </div>
     </div>
     <div class="form-group">
         <label>Ngày đào tạo:</label>
         <input type="date" id="inputNgay">
-    </div>
-    <div class="form-group">
-        <label>Link bài kiểm tra (Google Form...):</label>
-        <input type="url" id="inputLinkTest" placeholder="https://forms.gle/abcxyz">
     </div>
     <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex:1">
@@ -62,217 +68,167 @@
             <input type="time" id="timeEnd">
         </div>
     </div>
-    <button class="btn-generate" onclick="generateQR()">TẠO MÃ QR TỔNG HỢP</button>
+    <div class="form-group">
+        <label>Link bài kiểm tra:</label>
+        <input type="url" id="inputLinkTest" placeholder="https://forms.gle/...">
+    </div>
+    <button class="btn-generate" onclick="generateQR()">TẠO MÃ QR & LƯU HỆ THỐNG</button>
     
     <div id="qrcode" class="hidden">
         <div id="qr-canvas"></div>
         <p id="qrMaHienThi" style="margin-top:10px; font-weight:bold; color:var(--primary)"></p>
-        <p style="font-size: 11px; color: #666;">(Chụp ảnh mã này gửi cho học viên)</p>
     </div>
 </div>
 
-<div id="history-section" class="history-section">
-    <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; display: flex; justify-content: space-between;">
-        Lịch sử đã tạo
-        <button onclick="clearHistory()" style="font-size: 10px; background: none; border: 1px solid #ccc; cursor: pointer; padding: 2px 5px; border-radius: 3px;">Xóa hết</button>
-    </h3>
-    <div id="history-list">
-        </div>
+<div id="summary-section" class="container full-width">
+    <h2>BẢNG TỔNG HỢP KẾT QUẢ LỚP HỌC</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>TT</th>
+                    <th>Mã lớp</th>
+                    <th>Tên lớp</th>
+                    <th>Người đào tạo</th>
+                    <th>Dự kiến</th>
+                    <th>Ngày tổ chức</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
+                    <th>Tham gia</th>
+                    <th>Tỷ lệ</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <div id="checkin-section" class="container hidden">
-    <h2>Thông Tin Lớp Học</h2>
-    <div class="info-card">
+    <h2>Xác Nhận Điểm Danh</h2>
+    <div class="info-card" id="infoCard" style="background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
         <p><strong>Lớp:</strong> <span id="dispTen"></span></p>
         <p><strong>Mã:</strong> <span id="dispMa"></span></p>
-        <p><strong>Ngày:</strong> <span id="dispNgay"></span></p>
-        <p><strong>Giờ học:</strong> <span id="dispTime"></span></p>
     </div>
-
-    <div style="margin-top: 20px;">
-        <label>Mã Số Nhân Viên (MSNV):</label>
-        <input type="text" id="msnv" placeholder="Nhập MSNV (VD: NV001)..." onkeyup="lookupEmployee()">
-        
-        <label style="margin-top:15px;">Họ tên nhân viên:</label>
-        <input type="text" id="fullname" readonly style="background:#eee; font-weight: bold; color: #333;" placeholder="Tên sẽ hiện khi nhập đúng MSNV">
+    <div class="form-group">
+        <label>Nhập Mã Số Nhân Viên (MSNV):</label>
+        <input type="text" id="msnv" placeholder="VD: NV001" onkeyup="lookupEmployee()">
     </div>
-
-    <button id="btnConfirm" class="btn-confirm" onclick="confirmAttendance()">XÁC NHẬN ĐIỂM DANH</button>
-    <div id="successMsg" class="success-msg">✓ Bạn đã điểm danh thành công!</div>
-    <a id="linkTest" href="#" target="_blank" class="btn-test">BẤM VÀO ĐÂY ĐỂ LÀM BÀI THI</a>
+    <div class="form-group">
+        <label>Họ tên:</label>
+        <input type="text" id="fullname" readonly style="background:#eee;">
+    </div>
+    <button id="btnConfirm" class="btn-generate" style="background:var(--success)" onclick="confirmAttendance()">XÁC NHẬN</button>
+    <div id="successMsg" class="success-msg" style="display:none; color:green; text-align:center; font-weight:bold; margin-top:10px;">✓ Điểm danh thành công!</div>
 </div>
 
 <script>
-    const employees = { 
-        "NV001": "Nguyễn Vinh Lam", 
-        "NV002": "Chí Tắc Phúc", 
-        "NV003": "Trần Anh Tuấn",
-        "HSE01": "Lê Thị An"
+    // 1. CẤU HÌNH FIREBASE (Thay thế bằng thông tin của bạn)
+    const firebaseConfig = {
+        apiKey: "AIzaSy...",
+        authDomain: "your-app.firebaseapp.com",
+        databaseURL: "https://your-app-default-rtdb.firebaseio.com",
+        projectId: "your-app",
+        storageBucket: "your-app.appspot.com",
+        appId: "1:..."
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
+    const employees = { "NV001": "Nguyễn Vinh Lam", "NV002": "Chí Tắc Phúc", "HSE01": "Lê Thị An" };
     let qr;
 
     window.onload = function() {
-        // Khởi tạo QR
-        let qrCanvas = document.getElementById("qr-canvas");
-        qr = new QRCode(qrCanvas, { width: 200, height: 200 });
-
-        // 1. Tạo mã lớp ngẫu nhiên
+        qr = new QRCode(document.getElementById("qr-canvas"), { width: 200, height: 200 });
         resetMaLop();
-        
-        // 2. Load lịch sử
-        renderHistory();
+        listenToUpdates(); // Theo dõi dữ liệu từ Firebase
 
-        // 3. Kiểm tra nếu đang truy cập từ link mã QR
         const params = new URLSearchParams(window.location.search);
         if (params.has('ma')) {
             document.getElementById("admin-section").classList.add("hidden");
-            document.getElementById("history-section").classList.add("hidden");
+            document.getElementById("summary-section").classList.add("hidden");
             document.getElementById("checkin-section").classList.remove("hidden");
-            
             document.getElementById("dispMa").innerText = params.get('ma');
             document.getElementById("dispTen").innerText = params.get('ten');
-            document.getElementById("dispNgay").innerText = params.get('ngay');
-            document.getElementById("dispTime").innerText = params.get('start') + " - " + params.get('end');
-            
-            const testUrl = params.get('link');
-            if (testUrl && testUrl !== "undefined" && testUrl !== "") {
-                document.getElementById("linkTest").href = testUrl;
-            }
         }
     };
 
     function resetMaLop() {
-        const timestamp = Date.now().toString().slice(-6);
-        document.getElementById("inputMaLop").value = "HSE-" + timestamp;
+        document.getElementById("inputMaLop").value = "HSE-" + Date.now().toString().slice(-4);
     }
 
+    // TẠO QR VÀ ĐẨY LÊN FIREBASE
     function generateQR() {
-        const ma = document.getElementById("inputMaLop").value;
-        const ten = document.getElementById("inputTenLop").value;
-        const ngay = document.getElementById("inputNgay").value;
-        const link = document.getElementById("inputLinkTest").value;
-        const start = document.getElementById("timeStart").value;
-        const end = document.getElementById("timeEnd").value;
+        const data = {
+            ma: document.getElementById("inputMaLop").value,
+            ten: document.getElementById("inputTenLop").value,
+            ngay: document.getElementById("inputNgay").value,
+            start: document.getElementById("timeStart").value,
+            end: document.getElementById("timeEnd").value,
+            link: document.getElementById("inputLinkTest").value,
+            nguoiDaoTao: document.getElementById("inputNguoiDaoTao").value,
+            duKien: parseInt(document.getElementById("inputDuKien").value) || 0,
+            daThamGia: 0
+        };
 
-        if (!ten || !ngay || !start || !end) {
-            alert("Vui lòng nhập đầy đủ: Tên lớp, Ngày và Thời gian!");
-            return;
-        }
+        if (!data.ten || !data.ngay) return alert("Vui lòng nhập đủ thông tin!");
 
-        const dataString = `ma=${ma}&ten=${encodeURIComponent(ten)}&ngay=${ngay}&start=${start}&end=${end}&link=${encodeURIComponent(link)}`;
-        const currentUrl = window.location.href.split('?')[0];
-        const finalUrl = currentUrl + "?" + dataString;
-        
+        // Lưu vào Firebase
+        db.ref('classes/' + data.ma).set(data);
+
+        const finalUrl = window.location.href.split('?')[0] + `?ma=${data.ma}&ten=${encodeURIComponent(data.ten)}`;
         qr.clear();
         qr.makeCode(finalUrl);
-        
         document.getElementById("qrcode").classList.remove("hidden");
-        document.getElementById("qrMaHienThi").innerText = "LỚP: " + ma;
-
-        // Lưu vào lịch sử
-        saveToHistory({ ma, ten, ngay, start, end, link, finalUrl });
-        alert("Đã tạo mã QR thành công!");
+        document.getElementById("qrMaHienThi").innerText = "LỚP: " + data.ma;
     }
 
-    // --- CÁC HÀM XỬ LÝ LỊCH SỬ ---
-    function saveToHistory(item) {
-        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
-        // Kiểm tra nếu mã lớp đã tồn tại thì cập nhật, không thì thêm mới đầu danh sách
-        const index = history.findIndex(h => h.ma === item.ma);
-        if (index > -1) history[index] = item;
-        else history.unshift(item);
-        
-        localStorage.setItem("hse_history", JSON.stringify(history));
-        renderHistory();
-    }
-
-    function renderHistory() {
-        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
-        const listBody = document.getElementById("history-list");
-        
-        if (history.length === 0) {
-            listBody.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>Chưa có lịch sử tạo mã.</p>";
-            return;
-        }
-
-        listBody.innerHTML = history.map((item, index) => `
-            <div class="history-item">
-                <div class="history-info">
-                    <strong>${item.ma}</strong> - ${item.ten}<br>
-                    <small>${item.ngay} | ${item.start}-${item.end}</small>
-                </div>
-                <div class="history-btns">
-                    <button class="btn-small btn-view" onclick="viewAgain(${index})">Xem lại</button>
-                    <button class="btn-small btn-del" onclick="deleteHistory(${index})">Xóa</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function viewAgain(index) {
-        let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
-        const item = history[index];
-        
-        // Điền lại thông tin vào form
-        document.getElementById("inputMaLop").value = item.ma;
-        document.getElementById("inputTenLop").value = item.ten;
-        document.getElementById("inputNgay").value = item.ngay;
-        document.getElementById("inputLinkTest").value = item.link;
-        document.getElementById("timeStart").value = item.start;
-        document.getElementById("timeEnd").value = item.end;
-        
-        // Tạo lại QR
-        qr.clear();
-        qr.makeCode(item.finalUrl);
-        document.getElementById("qrcode").classList.remove("hidden");
-        document.getElementById("qrMaHienThi").innerText = "LỚP: " + item.ma;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function deleteHistory(index) {
-        if(confirm("Xóa lịch sử lớp này?")) {
-            let history = JSON.parse(localStorage.getItem("hse_history") || "[]");
-            history.splice(index, 1);
-            localStorage.setItem("hse_history", JSON.stringify(history));
-            renderHistory();
-        }
-    }
-
-    function clearHistory() {
-        if(confirm("Bạn muốn xóa toàn bộ lịch sử?")) {
-            localStorage.removeItem("hse_history");
-            renderHistory();
-        }
-    }
-
-    // --- HÀM CŨ ---
-    function lookupEmployee() {
-        const id = document.getElementById("msnv").value.trim().toUpperCase();
-        const nameField = document.getElementById("fullname");
-        if (employees[id]) {
-            nameField.value = employees[id];
-            nameField.style.color = "green";
-        } else {
-            nameField.value = "";
-            nameField.placeholder = "Đang tìm mã nhân viên...";
-        }
-    }
-
+    // XÁC NHẬN ĐIỂM DANH (CẬP NHẬT FIREBASE)
     function confirmAttendance() {
+        const maLop = document.getElementById("dispMa").innerText;
         const name = document.getElementById("fullname").value;
-        if (!name) {
-            alert("Vui lòng nhập mã số nhân viên hợp lệ trước khi điểm danh!");
-            return;
-        }
+        if (!name) return alert("Sai MSNV!");
+
+        const classRef = db.ref('classes/' + maLop + '/daThamGia');
+        classRef.transaction((currentCount) => (currentCount || 0) + 1);
+
+        document.getElementById("btnConfirm").classList.add("hidden");
         document.getElementById("successMsg").style.display = "block";
-        document.getElementById("btnConfirm").style.display = "none";
-        const testBtn = document.getElementById("linkTest");
-        if (testBtn.href.includes("http")) {
-            testBtn.style.display = "block";
-        } else {
-            alert("Bạn đã điểm danh thành công!");
-        }
+    }
+
+    // LẮNG NGHE DỮ LIỆU ĐỂ HIỂN THỊ BẢNG TỔNG HỢP
+    function listenToUpdates() {
+        db.ref('classes').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const tbody = document.getElementById("summary-body");
+            tbody.innerHTML = "";
+            let count = 1;
+
+            for (let id in data) {
+                const item = data[id];
+                const tyLe = item.duKien > 0 ? Math.round((item.daThamGia / item.duKien) * 100) : 0;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${count++}</td>
+                        <td>${item.ma}</td>
+                        <td style="text-align:left">${item.ten}</td>
+                        <td>${item.nguoiDaoTao}</td>
+                        <td>${item.duKien}</td>
+                        <td>${item.ngay}</td>
+                        <td>${item.start}</td>
+                        <td>${item.end}</td>
+                        <td class="success-text">${item.daThamGia}</td>
+                        <td style="font-weight:bold">${tyLe}%</td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function lookupEmployee() {
+        const id = document.getElementById("msnv").value.toUpperCase();
+        document.getElementById("fullname").value = employees[id] || "";
     }
 </script>
 </body>
