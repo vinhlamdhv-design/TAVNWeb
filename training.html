@@ -3,50 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Đào Tạo HSE</title>
+    <title>Hệ Thống Quản Lý Đào Tạo HSE - Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #28a745; --test: #e67e22; --bg: #f8f9fa; --danger: #dc3545; }
+        :root { --primary: #1a73e8; --success: #28a745; --test: #e67e22; --bg: #f8f9fa; --danger: #dc3545; --blue-header: #00a2e8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin-bottom: 20px; }
-        .full-width { max-width: 95%; width: 95%; }
-        h2 { color: var(--primary); text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin-bottom: 20px; }
+        .full-width { max-width: 98%; width: 98%; }
+        h2 { color: var(--primary); text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; text-transform: uppercase; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #444; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .btn-generate { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         
-        /* Table Styles */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th { background: #00a2e8; color: white; padding: 10px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; background: white; }
+        th { background: var(--blue-header); color: white; padding: 10px; border: 1px solid #ddd; }
         td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .success-text { color: var(--success); font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .btn { padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; width: 100%; color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
         .hidden { display: none; }
-        #qrcode { margin-top: 20px; display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px dashed #ccc; background: #fff; }
+        #qrcode { margin-top: 20px; text-align: center; padding: 15px; border: 1px dashed #ccc; }
     </style>
 </head>
 <body>
 
 <div id="admin-section" class="container">
-    <h2>Thiết Lập Lớp Học & QR</h2>
-    <div class="form-group">
-        <label>Mã lớp (Tự động):</label>
-        <input type="text" id="inputMaLop" readonly>
-    </div>
+    <h2>Thiết Lập Lớp Học</h2>
     <div class="form-group">
         <label>Tên lớp đào tạo:</label>
-        <input type="text" id="inputTenLop" placeholder="VD: Huấn luyện an toàn hóa chất">
+        <input type="text" id="inputTenLop" placeholder="VD: An toàn hóa chất">
     </div>
     <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex:1">
             <label>Người đào tạo:</label>
             <select id="inputNguoiDaoTao">
+                <option value="Giảng viên bên ngoài">Giảng viên bên ngoài</option>
                 <option value="Chí Tắc Phúc">Chí Tắc Phúc</option>
                 <option value="Nguyễn Vinh Lam">Nguyễn Vinh Lam</option>
-                <option value="Giảng viên bên ngoài">Giảng viên bên ngoài</option>
+                <option value="Trần Thị Phượng">Trần Thị Phượng</option>
+                <option value="Đoàn Ngọc Hùng">Đoàn Ngọc Hùng</option>
             </select>
         </div>
         <div class="form-group" style="flex:1">
@@ -55,180 +54,185 @@
         </div>
     </div>
     <div class="form-group">
-        <label>Ngày đào tạo:</label>
+        <label>Ngày tổ chức:</label>
         <input type="date" id="inputNgay">
     </div>
     <div style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex:1">
-            <label>Bắt đầu:</label>
-            <input type="time" id="timeStart">
-        </div>
-        <div class="form-group" style="flex:1">
-            <label>Kết thúc:</label>
-            <input type="time" id="timeEnd">
-        </div>
+        <div class="form-group" style="flex:1"><label>Bắt đầu:</label><input type="time" id="timeStart"></div>
+        <div class="form-group" style="flex:1"><label>Kết thúc:</label><input type="time" id="timeEnd"></div>
     </div>
-    <div class="form-group">
-        <label>Link bài kiểm tra:</label>
-        <input type="url" id="inputLinkTest" placeholder="https://forms.gle/...">
-    </div>
-    <button class="btn-generate" onclick="generateQR()">TẠO MÃ QR & LƯU HỆ THỐNG</button>
-    
+    <button class="btn btn-primary" onclick="generateQR()">TẠO MÃ QR & LƯU HỆ THỐNG</button>
     <div id="qrcode" class="hidden">
         <div id="qr-canvas"></div>
-        <p id="qrMaHienThi" style="margin-top:10px; font-weight:bold; color:var(--primary)"></p>
+        <p id="qrMaHienThi" style="font-weight:bold; color:var(--primary); margin-top:10px;"></p>
     </div>
 </div>
 
 <div id="summary-section" class="container full-width">
-    <h2>BẢNG TỔNG HỢP KẾT QUẢ LỚP HỌC</h2>
+    <h2>Bảng Tổng Hợp Kết Quả Lớp Học</h2>
     <div style="overflow-x: auto;">
-        <table>
+        <table id="mainSummaryTable">
             <thead>
                 <tr>
-                    <th>TT</th>
-                    <th>Mã lớp</th>
-                    <th>Tên lớp</th>
-                    <th>Người đào tạo</th>
-                    <th>Dự kiến</th>
-                    <th>Ngày tổ chức</th>
-                    <th>Bắt đầu</th>
-                    <th>Kết thúc</th>
-                    <th>Tham gia</th>
-                    <th>Tỷ lệ</th>
+                    <th>TT</th><th>Mã lớp</th><th>Tên lớp</th><th>Người đào tạo</th><th>Dự kiến</th><th>Ngày tổ chức</th><th>Bắt đầu</th><th>Kết thúc</th><th>Tham gia</th><th>Tỷ lệ</th>
                 </tr>
             </thead>
-            <tbody id="summary-body">
-                </tbody>
+            <tbody id="summary-body"></tbody>
         </table>
     </div>
 </div>
 
-<div id="checkin-section" class="container hidden">
-    <h2>Xác Nhận Điểm Danh</h2>
-    <div class="info-card" id="infoCard" style="background: #e8f0fe; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-        <p><strong>Lớp:</strong> <span id="dispTen"></span></p>
-        <p><strong>Mã:</strong> <span id="dispMa"></span></p>
+<div id="checkin-section" class="container">
+    <h2 id="checkinTitle">Điểm danh / Tra cứu</h2>
+    <div class="form-group">
+        <label>Mã Số Nhân Viên (MSNV):</label>
+        <input type="text" id="msnv" placeholder="Nhập MSNV để xem lịch sử..." onkeyup="lookupEmployee()">
     </div>
     <div class="form-group">
-        <label>Nhập Mã Số Nhân Viên (MSNV):</label>
-        <input type="text" id="msnv" placeholder="VD: NV001" onkeyup="lookupEmployee()">
+        <label>Họ tên học viên:</label>
+        <input type="text" id="fullname" readonly style="background:#eee; font-weight:bold;">
     </div>
-    <div class="form-group">
-        <label>Họ tên:</label>
-        <input type="text" id="fullname" readonly style="background:#eee;">
+    <button id="btnConfirm" class="btn btn-success hidden" onclick="confirmAttendance()">XÁC NHẬN ĐIỂM DANH</button>
+    
+    <div id="personal-history" class="hidden" style="margin-top:20px; border-top: 2px solid #eee; padding-top:15px;">
+        <h3 style="font-size:14px; color:var(--primary)">LỊCH SỬ KHÓA HỌC ĐÃ THAM GIA</h3>
+        <div style="overflow-x: auto;">
+            <table style="font-size:11px;">
+                <thead>
+                    <tr style="background:#f2f2f2; color:#333;">
+                        <th>TT</th><th>Mã lớp</th><th>Lớp học</th><th>Người đào tạo</th><th>Ngày tổ chức</th><th>Bắt đầu</th><th>Kết thúc</th><th>Thời lượng</th><th>Kết quả</th>
+                    </tr>
+                </thead>
+                <tbody id="personal-body"></tbody>
+            </table>
+        </div>
     </div>
-    <button id="btnConfirm" class="btn-generate" style="background:var(--success)" onclick="confirmAttendance()">XÁC NHẬN</button>
-    <div id="successMsg" class="success-msg" style="display:none; color:green; text-align:center; font-weight:bold; margin-top:10px;">✓ Điểm danh thành công!</div>
 </div>
 
 <script>
-    // 1. CẤU HÌNH FIREBASE (Thay thế bằng thông tin của bạn)
-    const firebaseConfig = {
-        apiKey: "AIzaSy...",
-        authDomain: "your-app.firebaseapp.com",
-        databaseURL: "https://your-app-default-rtdb.firebaseio.com",
-        projectId: "your-app",
-        storageBucket: "your-app.appspot.com",
-        appId: "1:..."
-    };
+    // --- CẤU HÌNH ---
+    const firebaseConfig = { apiKey: "YOUR_API_KEY", databaseURL: "YOUR_DATABASE_URL", projectId: "YOUR_PROJECT_ID" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const employees = { "NV001": "Nguyễn Vinh Lam", "NV002": "Chí Tắc Phúc", "NV003": "Trần Thị Phượng" };
 
-    const employees = { "NV001": "Nguyễn Vinh Lam", "NV002": "Chí Tắc Phúc", "HSE01": "Lê Thị An" };
     let qr;
+    let currentClassId = null;
 
     window.onload = function() {
-        qr = new QRCode(document.getElementById("qr-canvas"), { width: 200, height: 200 });
-        resetMaLop();
-        listenToUpdates(); // Theo dõi dữ liệu từ Firebase
-
+        qr = new QRCode(document.getElementById("qr-canvas"), { width: 180, height: 180 });
+        listenToUpdates();
+        
         const params = new URLSearchParams(window.location.search);
         if (params.has('ma')) {
+            currentClassId = params.get('ma');
             document.getElementById("admin-section").classList.add("hidden");
             document.getElementById("summary-section").classList.add("hidden");
-            document.getElementById("checkin-section").classList.remove("hidden");
-            document.getElementById("dispMa").innerText = params.get('ma');
-            document.getElementById("dispTen").innerText = params.get('ten');
+            document.getElementById("checkinTitle").innerText = "ĐIỂM DANH LỚP: " + currentClassId;
+            document.getElementById("btnConfirm").classList.remove("hidden");
         }
     };
 
-    function resetMaLop() {
-        document.getElementById("inputMaLop").value = "HSE-" + Date.now().toString().slice(-4);
+    // Hàm tính thời lượng học (Ví dụ: 10:30 - 11:30 = 1:00)
+    function calculateDuration(start, end) {
+        if(!start || !end) return "0:00";
+        let s = start.split(':'), e = end.split(':');
+        let diff = (new Date(0,0,0,e[0],e[1]) - new Date(0,0,0,s[0],s[1])) / 1000 / 60;
+        let h = Math.floor(diff/60), m = diff%60;
+        return `${h}:${m < 10 ? '0'+m : m}`;
     }
 
-    // TẠO QR VÀ ĐẨY LÊN FIREBASE
     function generateQR() {
+        const ma = "HSE-" + Math.floor(1000 + Math.random() * 9000);
         const data = {
-            ma: document.getElementById("inputMaLop").value,
+            ma,
             ten: document.getElementById("inputTenLop").value,
+            nguoiDaoTao: document.getElementById("inputNguoiDaoTao").value,
+            duKien: parseInt(document.getElementById("inputDuKien").value) || 0,
             ngay: document.getElementById("inputNgay").value,
             start: document.getElementById("timeStart").value,
             end: document.getElementById("timeEnd").value,
-            link: document.getElementById("inputLinkTest").value,
-            nguoiDaoTao: document.getElementById("inputNguoiDaoTao").value,
-            duKien: parseInt(document.getElementById("inputDuKien").value) || 0,
             daThamGia: 0
         };
-
-        if (!data.ten || !data.ngay) return alert("Vui lòng nhập đủ thông tin!");
-
-        // Lưu vào Firebase
-        db.ref('classes/' + data.ma).set(data);
-
-        const finalUrl = window.location.href.split('?')[0] + `?ma=${data.ma}&ten=${encodeURIComponent(data.ten)}`;
-        qr.clear();
-        qr.makeCode(finalUrl);
+        db.ref('classes/' + ma).set(data);
+        const url = window.location.href.split('?')[0] + "?ma=" + ma;
+        qr.makeCode(url);
         document.getElementById("qrcode").classList.remove("hidden");
-        document.getElementById("qrMaHienThi").innerText = "LỚP: " + data.ma;
-    }
-
-    // XÁC NHẬN ĐIỂM DANH (CẬP NHẬT FIREBASE)
-    function confirmAttendance() {
-        const maLop = document.getElementById("dispMa").innerText;
-        const name = document.getElementById("fullname").value;
-        if (!name) return alert("Sai MSNV!");
-
-        const classRef = db.ref('classes/' + maLop + '/daThamGia');
-        classRef.transaction((currentCount) => (currentCount || 0) + 1);
-
-        document.getElementById("btnConfirm").classList.add("hidden");
-        document.getElementById("successMsg").style.display = "block";
-    }
-
-    // LẮNG NGHE DỮ LIỆU ĐỂ HIỂN THỊ BẢNG TỔNG HỢP
-    function listenToUpdates() {
-        db.ref('classes').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const tbody = document.getElementById("summary-body");
-            tbody.innerHTML = "";
-            let count = 1;
-
-            for (let id in data) {
-                const item = data[id];
-                const tyLe = item.duKien > 0 ? Math.round((item.daThamGia / item.duKien) * 100) : 0;
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${count++}</td>
-                        <td>${item.ma}</td>
-                        <td style="text-align:left">${item.ten}</td>
-                        <td>${item.nguoiDaoTao}</td>
-                        <td>${item.duKien}</td>
-                        <td>${item.ngay}</td>
-                        <td>${item.start}</td>
-                        <td>${item.end}</td>
-                        <td class="success-text">${item.daThamGia}</td>
-                        <td style="font-weight:bold">${tyLe}%</td>
-                    </tr>
-                `;
-            }
-        });
+        document.getElementById("qrMaHienThi").innerText = "MÃ LỚP: " + ma;
     }
 
     function lookupEmployee() {
         const id = document.getElementById("msnv").value.toUpperCase();
-        document.getElementById("fullname").value = employees[id] || "";
+        const name = employees[id] || "";
+        document.getElementById("fullname").value = name;
+        if(name) {
+            loadPersonalHistory(id);
+            document.getElementById("personal-history").classList.remove("hidden");
+        } else {
+            document.getElementById("personal-history").classList.add("hidden");
+        }
+    }
+
+    // TẢI LỊCH SỬ CÁ NHÂN (HÌNH 3)
+    function loadPersonalHistory(msnv) {
+        db.ref('users/' + msnv + '/history').on('value', (snap) => {
+            const data = snap.val();
+            const tbody = document.getElementById("personal-body");
+            tbody.innerHTML = "";
+            let i = 1;
+            for(let id in data) {
+                const item = data[id];
+                tbody.innerHTML += `<tr>
+                    <td>${i++}</td><td>${item.ma}</td><td>${item.ten}</td>
+                    <td>${item.nguoiDaoTao}</td><td>${item.ngay}</td>
+                    <td>${item.start}</td><td>${item.end}</td>
+                    <td>${calculateDuration(item.start, item.end)}</td>
+                    <td style="color:green; font-weight:bold;">Đạt</td>
+                </tr>`;
+            }
+        });
+    }
+
+    function confirmAttendance() {
+        const msnv = document.getElementById("msnv").value.toUpperCase();
+        if(!employees[msnv]) return alert("MSNV không tồn tại!");
+
+        // 1. Cập nhật số lượng tham gia lớp (Bảng 1 & 2)
+        db.ref('classes/' + currentClassId).once('value', (snap) => {
+            const classData = snap.val();
+            db.ref('classes/' + currentClassId + '/daThamGia').transaction(c => (c || 0) + 1);
+
+            // 2. Lưu lịch sử vào hồ sơ cá nhân (Bảng 3)
+            db.ref('users/' + msnv + '/history/' + currentClassId).set({
+                ma: currentClassId,
+                ten: classData.ten,
+                nguoiDaoTao: classData.nguoiDaoTao,
+                ngay: classData.ngay,
+                start: classData.start,
+                end: classData.end
+            });
+            alert("Điểm danh thành công!");
+            document.getElementById("btnConfirm").classList.add("hidden");
+        });
+    }
+
+    function listenToUpdates() {
+        db.ref('classes').on('value', (snap) => {
+            const data = snap.val();
+            const tbody = document.getElementById("summary-body");
+            tbody.innerHTML = "";
+            let i = 1;
+            for(let id in data) {
+                const item = data[id];
+                const rate = item.duKien > 0 ? Math.round((item.daThamGia/item.duKien)*100) : 0;
+                tbody.innerHTML += `<tr>
+                    <td>${i++}</td><td>${item.ma}</td><td>${item.ten}</td><td>${item.nguoiDaoTao}</td>
+                    <td>${item.duKien}</td><td>${item.ngay}</td><td>${item.start}</td><td>${item.end}</td>
+                    <td style="color:blue;font-weight:bold">${item.daThamGia}</td>
+                    <td style="font-weight:bold">${rate}%</td>
+                </tr>`;
+            }
+        });
     }
 </script>
 </body>
