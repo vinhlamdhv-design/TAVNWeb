@@ -43,10 +43,6 @@
     
     <div class="form-grid" id="mainForm">
         <div class="form-group">
-            <label>Ngày khai báo</label>
-            <input type="date" id="ngayKhaiBao">
-        </div>
-        <div class="form-group">
             <label>Tên thiết bị</label>
             <input type="text" id="tenThietBi" placeholder="Ví dụ: lăng xích điện">
         </div>
@@ -94,10 +90,21 @@
             <label>Ngày kiểm định tiếp theo</label>
             <input type="date" id="ngayKiemDinhTiepTheo">
         </div>
+
+        <div class="form-group">
+            <label>Ngày khai báo</label>
+            <input type="date" id="ngayKhaiBao">
+        </div>
+
         <div class="form-group">
             <label>Tình trạng sử dụng</label>
-            <input type="text" id="tinhTrang" placeholder="Đang sử dụng">
+            <select id="tinhTrang">
+                <option value="Đang sử dụng">Đang sử dụng</option>
+                <option value="Tạm ngừng sử dụng">Tạm ngừng sử dụng</option>
+                <option value="Đã thanh lý">Đã thanh lý</option>
+            </select>
         </div>
+
         <div class="form-group">
             <label>Người đánh giá</label>
             <input type="text" id="nguoiDanhGia">
@@ -206,7 +213,7 @@
         dataStore.push(entry);
         updateTable();
         
-        // Reset các ô nhập liệu sau khi thêm
+        // Reset các ô nhập liệu (giữ lại ngày khai báo nếu muốn nhập tiếp nhiều thiết bị cùng ngày)
         document.getElementById('tenThietBi').value = '';
         document.getElementById('maHoSo').value = '';
         document.getElementById('maThietBi').value = '';
