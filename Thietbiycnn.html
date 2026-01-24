@@ -18,12 +18,11 @@
         .btn-add { background-color: #2ecc71; color: white; margin-right: 10px; }
         .btn-export { background-color: #3498db; color: white; }
         button:hover { opacity: 0.8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #2e7d32; color: white; }
+        th { background-color: #2e7d32; color: white; white-space: nowrap; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         
-        /* CSS bổ sung cho phần khắc phục */
         .hidden { display: none; }
         .remedial-section { 
             grid-column: 1 / -1; 
@@ -44,12 +43,24 @@
     
     <div class="form-grid" id="mainForm">
         <div class="form-group">
+            <label>Ngày khai báo</label>
+            <input type="date" id="ngayKhaiBao">
+        </div>
+        <div class="form-group">
             <label>Tên thiết bị</label>
             <input type="text" id="tenThietBi" placeholder="Ví dụ: lăng xích điện">
         </div>
         <div class="form-group">
-            <label>Mã số</label>
-            <input type="text" id="maSo">
+            <label>Mã hồ sơ</label>
+            <input type="text" id="maHoSo">
+        </div>
+        <div class="form-group">
+            <label>Mã thiết bị</label>
+            <input type="text" id="maThietBi">
+        </div>
+        <div class="form-group">
+            <label>Số chế tạo</label>
+            <input type="text" id="soCheTao">
         </div>
         <div class="form-group">
             <label>Khu vực sử dụng</label>
@@ -78,6 +89,10 @@
         <div class="form-group">
             <label>Ngày kiểm định gần nhất</label>
             <input type="date" id="ngayKiemDinh">
+        </div>
+        <div class="form-group">
+            <label>Ngày kiểm định tiếp theo</label>
+            <input type="date" id="ngayKiemDinhTiepTheo">
         </div>
         <div class="form-group">
             <label>Tình trạng sử dụng</label>
@@ -118,35 +133,40 @@
         <button class="btn-export" onclick="exportToExcel()">⬇ Xuất file Excel (.xlsx)</button>
     </div>
 
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>Tên thiết bị</th>
-                <th>Mã số</th>
-                <th>Khu vực</th>
-                <th>CO</th>
-                <th>CQ</th>
-                <th>Hợp quy</th>
-                <th>Thông tin chung</th>
-                <th>Năm SX</th>
-                <th>Ngày kiểm định</th>
-                <th>Tình trạng</th>
-                <th>Người ĐG</th>
-                <th>Đánh giá tuân thủ</th>
-                <th>Hành động khắc phục</th>
-                <th>Người thực hiện</th>
-                <th>Thời hạn</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Ngày khai báo</th>
+                    <th>Tên thiết bị</th>
+                    <th>Mã hồ sơ</th>
+                    <th>Mã thiết bị</th>
+                    <th>Số chế tạo</th>
+                    <th>Khu vực</th>
+                    <th>CO</th>
+                    <th>CQ</th>
+                    <th>Hợp quy</th>
+                    <th>Thông tin chung</th>
+                    <th>Năm SX</th>
+                    <th>Kiểm định gần nhất</th>
+                    <th>Kiểm định tiếp theo</th>
+                    <th>Tình trạng</th>
+                    <th>Người ĐG</th>
+                    <th>Đánh giá tuân thủ</th>
+                    <th>Khắc phục</th>
+                    <th>Người thực hiện</th>
+                    <th>Thời hạn</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     let dataStore = [];
 
-    // Hàm ẩn/hiện các ô khắc phục
     function toggleRemedial() {
         const value = document.getElementById('tuanThu').value;
         const remedialFields = document.getElementById('remedialFields');
@@ -154,7 +174,6 @@
             remedialFields.classList.remove('hidden');
         } else {
             remedialFields.classList.add('hidden');
-            // Reset giá trị nếu chọn lại "Tuân thủ"
             document.getElementById('hanhDongKhacPhuc').value = '';
             document.getElementById('nguoiThucHien').value = '';
             document.getElementById('thoiHanHoanThanh').value = '';
@@ -162,10 +181,12 @@
     }
 
     function addRow() {
-        // Lấy giá trị từ form
         const entry = {
+            "Ngày khai báo": document.getElementById('ngayKhaiBao').value,
             "Tên thiết bị": document.getElementById('tenThietBi').value,
-            "Mã số": document.getElementById('maSo').value,
+            "Mã hồ sơ": document.getElementById('maHoSo').value,
+            "Mã thiết bị": document.getElementById('maThietBi').value,
+            "Số chế tạo": document.getElementById('soCheTao').value,
             "Khu vực": document.getElementById('khuVuc').value,
             "CO": document.getElementById('co').value,
             "CQ": document.getElementById('cq').value,
@@ -173,6 +194,7 @@
             "Thông tin chung": document.getElementById('thongTinChung').value,
             "Năm SX": document.getElementById('namSX').value,
             "Ngày kiểm định": document.getElementById('ngayKiemDinh').value,
+            "Ngày kiểm định tiếp theo": document.getElementById('ngayKiemDinhTiepTheo').value,
             "Tình trạng": document.getElementById('tinhTrang').value,
             "Người đánh giá": document.getElementById('nguoiDanhGia').value,
             "Đánh giá tuân thủ": document.getElementById('tuanThu').value,
@@ -184,9 +206,11 @@
         dataStore.push(entry);
         updateTable();
         
-        // Reset form cơ bản
+        // Reset các ô nhập liệu sau khi thêm
         document.getElementById('tenThietBi').value = '';
-        document.getElementById('maSo').value = '';
+        document.getElementById('maHoSo').value = '';
+        document.getElementById('maThietBi').value = '';
+        document.getElementById('soCheTao').value = '';
         document.getElementById('hanhDongKhacPhuc').value = '';
         document.getElementById('nguoiThucHien').value = '';
         document.getElementById('thoiHanHoanThanh').value = '';
@@ -199,8 +223,11 @@
         tbody.innerHTML = '';
         dataStore.forEach(item => {
             const row = `<tr>
+                <td>${item["Ngày khai báo"]}</td>
                 <td>${item["Tên thiết bị"]}</td>
-                <td>${item["Mã số"]}</td>
+                <td>${item["Mã hồ sơ"]}</td>
+                <td>${item["Mã thiết bị"]}</td>
+                <td>${item["Số chế tạo"]}</td>
                 <td>${item["Khu vực"]}</td>
                 <td>${item["CO"]}</td>
                 <td>${item["CQ"]}</td>
@@ -208,6 +235,7 @@
                 <td>${item["Thông tin chung"]}</td>
                 <td>${item["Năm SX"]}</td>
                 <td>${item["Ngày kiểm định"]}</td>
+                <td>${item["Ngày kiểm định tiếp theo"]}</td>
                 <td>${item["Tình trạng"]}</td>
                 <td>${item["Người đánh giá"]}</td>
                 <td>${item["Đánh giá tuân thủ"]}</td>
@@ -228,7 +256,6 @@
         const worksheet = XLSX.utils.json_to_sheet(dataStore);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "ThongKeThietBi");
-
         XLSX.writeFile(workbook, "Thong_Ke_Thiet_Bi.xlsx");
     }
 </script>
