@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thông Tin Thiết Bị</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        h2 { color: #2e7d32; text-align: center; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #333; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-group { text-align: center; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+        .btn-add { background-color: #2ecc71; color: white; margin-right: 10px; }
+        .btn-export { background-color: #3498db; color: white; }
+        button:hover { opacity: 0.8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #2e7d32; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>NHẬP HỒ SƠ QUẢN LÝ THIẾT BỊ</h2>
+    
+    <div class="form-grid" id="mainForm">
+        <div class="form-group">
+            <label>Tên thiết bị</label>
+            <input type="text" id="tenThietBi" placeholder="Ví dụ: lăng xích điện">
+        </div>
+        <div class="form-group">
+            <label>Mã số</label>
+            <input type="text" id="maSo">
+        </div>
+        <div class="form-group">
+            <label>Khu vực sử dụng</label>
+            <input type="text" id="khuVuc">
+        </div>
+        <div class="form-group">
+            <label>CO</label>
+            <select id="co"><option>Có</option><option>Chưa có</option></select>
+        </div>
+        <div class="form-group">
+            <label>CQ</label>
+            <select id="cq"><option>Có</option><option>Chưa có</option></select>
+        </div>
+        <div class="form-group">
+            <label>Hợp quy</label>
+            <select id="hopQuy"><option>Có</option><option>Chưa có</option></select>
+        </div>
+        <div class="form-group">
+            <label>Thông tin chung (Xuất xứ, hãng...)</label>
+            <textarea id="thongTinChung" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Năm SX</label>
+            <input type="number" id="namSX" value="2025">
+        </div>
+        <div class="form-group">
+            <label>Ngày kiểm định gần nhất</label>
+            <input type="date" id="ngayKiemDinh">
+        </div>
+        <div class="form-group">
+            <label>Tình trạng sử dụng</label>
+            <input type="text" id="tinhTrang" placeholder="Đang sử dụng">
+        </div>
+        <div class="form-group">
+            <label>Người đánh giá</label>
+            <input type="text" id="nguoiDanhGia">
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-add" onclick="addRow()">+ Thêm vào danh sách</button>
+        <button class="btn-export" onclick="exportToExcel()">⬇ Xuất file Excel (.xlsx)</button>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Tên thiết bị</th>
+                <th>Mã số</th>
+                <th>Khu vực</th>
+                <th>CO</th>
+                <th>CQ</th>
+                <th>Hợp quy</th>
+                <th>Thông tin chung</th>
+                <th>Năm SX</th>
+                <th>Ngày kiểm định</th>
+                <th>Tình trạng</th>
+                <th>Người ĐG</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    let dataStore = [];
+
+    function addRow() {
+        // Lấy giá trị từ form
+        const entry = {
+            "Tên thiết bị": document.getElementById('tenThietBi').value,
+            "Mã số": document.getElementById('maSo').value,
+            "Khu vực": document.getElementById('khuVuc').value,
+            "CO": document.getElementById('co').value,
+            "CQ": document.getElementById('cq').value,
+            "Hợp quy": document.getElementById('hopQuy').value,
+            "Thông tin chung": document.getElementById('thongTinChung').value,
+            "Năm SX": document.getElementById('namSX').value,
+            "Ngày kiểm định": document.getElementById('ngayKiemDinh').value,
+            "Tình trạng": document.getElementById('tinhTrang').value,
+            "Người đánh giá": document.getElementById('nguoiDanhGia').value
+        };
+
+        dataStore.push(entry);
+        updateTable();
+        // Reset form cơ bản (giữ lại các field lặp lại nếu cần)
+        document.getElementById('tenThietBi').value = '';
+    }
+
+    function updateTable() {
+        const tbody = document.querySelector('#dataTable tbody');
+        tbody.innerHTML = '';
+        dataStore.forEach(item => {
+            const row = `<tr>
+                <td>${item["Tên thiết bị"]}</td>
+                <td>${item["Mã số"]}</td>
+                <td>${item["Khu vực"]}</td>
+                <td>${item["CO"]}</td>
+                <td>${item["CQ"]}</td>
+                <td>${item["Hợp quy"]}</td>
+                <td>${item["Thông tin chung"]}</td>
+                <td>${item["Năm SX"]}</td>
+                <td>${item["Ngày kiểm định"]}</td>
+                <td>${item["Tình trạng"]}</td>
+                <td>${item["Người đánh giá"]}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function exportToExcel() {
+        if(dataStore.length === 0) {
+            alert("Vui lòng nhập ít nhất một dòng dữ liệu!");
+            return;
+        }
+        
+        // Tạo Worksheet từ JSON
+        const worksheet = XLSX.utils.json_to_sheet(dataStore);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "ThongKeThietBi");
+
+        // Xuất file
+        XLSX.writeFile(workbook, "Thong_Ke_Thiet_Bi.xlsx");
+    }
+</script>
+
+</body>
+</html>
