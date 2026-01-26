@@ -21,8 +21,16 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #2e7d32; color: white; white-space: nowrap; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
         
+        /* Hiệu ứng khi chọn hàng */
+        tbody tr { cursor: pointer; transition: background 0.2s; }
+        tbody tr:hover { background-color: #e8f5e9 ! resentment; }
+        
+        /* Màu sắc tuân thủ */
+        .status-tuanthu { background-color: #2ecc71 !important; color: white; font-weight: bold; text-align: center; }
+        .status-motphan { background-color: #f1c40f !important; color: black; font-weight: bold; text-align: center; }
+        .status-khong { background-color: #e74c3c !important; color: white; font-weight: bold; text-align: center; }
+
         .hidden { display: none; }
         .remedial-section { 
             grid-column: 1 / -1; 
@@ -90,12 +98,10 @@
             <label>Ngày kiểm định tiếp theo</label>
             <input type="date" id="ngayKiemDinhTiepTheo">
         </div>
-
         <div class="form-group">
             <label>Ngày khai báo</label>
             <input type="date" id="ngayKhaiBao">
         </div>
-
         <div class="form-group">
             <label>Tình trạng sử dụng</label>
             <select id="tinhTrang">
@@ -104,12 +110,10 @@
                 <option value="Đã thanh lý">Đã thanh lý</option>
             </select>
         </div>
-
         <div class="form-group">
             <label>Người đánh giá</label>
             <input type="text" id="nguoiDanhGia">
         </div>
-
         <div class="form-group">
             <label>Tình trạng tuân thủ</label>
             <select id="tuanThu" onchange="toggleRemedial()">
@@ -165,8 +169,7 @@
                     <th>Thời hạn</th>
                 </tr>
             </thead>
-            <tbody>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </div>
@@ -181,77 +184,107 @@
             remedialFields.classList.remove('hidden');
         } else {
             remedialFields.classList.add('hidden');
-            document.getElementById('hanhDongKhacPhuc').value = '';
-            document.getElementById('nguoiThucHien').value = '';
-            document.getElementById('thoiHanHoanThanh').value = '';
         }
     }
 
     function addRow() {
         const entry = {
-            "Ngày khai báo": document.getElementById('ngayKhaiBao').value,
-            "Tên thiết bị": document.getElementById('tenThietBi').value,
-            "Mã hồ sơ": document.getElementById('maHoSo').value,
-            "Mã thiết bị": document.getElementById('maThietBi').value,
-            "Số chế tạo": document.getElementById('soCheTao').value,
-            "Khu vực": document.getElementById('khuVuc').value,
-            "CO": document.getElementById('co').value,
-            "CQ": document.getElementById('cq').value,
-            "Hợp quy": document.getElementById('hopQuy').value,
-            "Thông tin chung": document.getElementById('thongTinChung').value,
-            "Năm SX": document.getElementById('namSX').value,
-            "Ngày kiểm định": document.getElementById('ngayKiemDinh').value,
-            "Ngày kiểm định tiếp theo": document.getElementById('ngayKiemDinhTiepTheo').value,
-            "Tình trạng": document.getElementById('tinhTrang').value,
-            "Người đánh giá": document.getElementById('nguoiDanhGia').value,
-            "Đánh giá tuân thủ": document.getElementById('tuanThu').value,
-            "Hành động khắc phục": document.getElementById('hanhDongKhacPhuc').value || "-",
-            "Người thực hiện": document.getElementById('nguoiThucHien').value || "-",
-            "Thời hạn": document.getElementById('thoiHanHoanThanh').value || "-"
+            ngayKhaiBao: document.getElementById('ngayKhaiBao').value,
+            tenThietBi: document.getElementById('tenThietBi').value,
+            maHoSo: document.getElementById('maHoSo').value,
+            maThietBi: document.getElementById('maThietBi').value,
+            soCheTao: document.getElementById('soCheTao').value,
+            khuVuc: document.getElementById('khuVuc').value,
+            co: document.getElementById('co').value,
+            cq: document.getElementById('cq').value,
+            hopQuy: document.getElementById('hopQuy').value,
+            thongTinChung: document.getElementById('thongTinChung').value,
+            namSX: document.getElementById('namSX').value,
+            ngayKiemDinh: document.getElementById('ngayKiemDinh').value,
+            ngayKiemDinhTiepTheo: document.getElementById('ngayKiemDinhTiepTheo').value,
+            tinhTrang: document.getElementById('tinhTrang').value,
+            nguoiDanhGia: document.getElementById('nguoiDanhGia').value,
+            tuanThu: document.getElementById('tuanThu').value,
+            hanhDongKhacPhuc: document.getElementById('hanhDongKhacPhuc').value || "-",
+            nguoiThucHien: document.getElementById('nguoiThucHien').value || "-",
+            thoiHan: document.getElementById('thoiHanHoanThanh').value || "-"
         };
 
         dataStore.push(entry);
         updateTable();
         
-        // Reset các ô nhập liệu (giữ lại ngày khai báo nếu muốn nhập tiếp nhiều thiết bị cùng ngày)
+        // Chỉ reset những ô thông tin biến động, giữ lại thông tin chung nếu cần nhập tiếp
         document.getElementById('tenThietBi').value = '';
-        document.getElementById('maHoSo').value = '';
         document.getElementById('maThietBi').value = '';
         document.getElementById('soCheTao').value = '';
-        document.getElementById('hanhDongKhacPhuc').value = '';
-        document.getElementById('nguoiThucHien').value = '';
-        document.getElementById('thoiHanHoanThanh').value = '';
-        document.getElementById('tuanThu').value = 'Tuân thủ';
-        toggleRemedial();
     }
 
     function updateTable() {
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = '';
-        dataStore.forEach(item => {
-            const row = `<tr>
-                <td>${item["Ngày khai báo"]}</td>
-                <td>${item["Tên thiết bị"]}</td>
-                <td>${item["Mã hồ sơ"]}</td>
-                <td>${item["Mã thiết bị"]}</td>
-                <td>${item["Số chế tạo"]}</td>
-                <td>${item["Khu vực"]}</td>
-                <td>${item["CO"]}</td>
-                <td>${item["CQ"]}</td>
-                <td>${item["Hợp quy"]}</td>
-                <td>${item["Thông tin chung"]}</td>
-                <td>${item["Năm SX"]}</td>
-                <td>${item["Ngày kiểm định"]}</td>
-                <td>${item["Ngày kiểm định tiếp theo"]}</td>
-                <td>${item["Tình trạng"]}</td>
-                <td>${item["Người đánh giá"]}</td>
-                <td>${item["Đánh giá tuân thủ"]}</td>
-                <td>${item["Hành động khắc phục"]}</td>
-                <td>${item["Người thực hiện"]}</td>
-                <td>${item["Thời hạn"]}</td>
+        dataStore.forEach((item, index) => {
+            // Xác định class màu sắc
+            let statusClass = '';
+            if (item.tuanThu === "Tuân thủ") statusClass = 'status-tuanthu';
+            else if (item.tuanThu === "Tuân thủ 1 phần") statusClass = 'status-motphan';
+            else if (item.tuanThu === "Không tuân thủ") statusClass = 'status-khong';
+
+            const row = `<tr onclick="loadEntry(${index})">
+                <td>${item.ngayKhaiBao}</td>
+                <td>${item.tenThietBi}</td>
+                <td>${item.maHoSo}</td>
+                <td>${item.maThietBi}</td>
+                <td>${item.soCheTao}</td>
+                <td>${item.khuVuc}</td>
+                <td>${item.co}</td>
+                <td>${item.cq}</td>
+                <td>${item.hopQuy}</td>
+                <td>${item.thongTinChung}</td>
+                <td>${item.namSX}</td>
+                <td>${item.ngayKiemDinh}</td>
+                <td>${item.ngayKiemDinhTiepTheo}</td>
+                <td>${item.tinhTrang}</td>
+                <td>${item.nguoiDanhGia}</td>
+                <td class="${statusClass}">${item.tuanThu}</td>
+                <td>${item.hanhDongKhacPhuc}</td>
+                <td>${item.nguoiThucHien}</td>
+                <td>${item.thoiHan}</td>
             </tr>`;
             tbody.innerHTML += row;
         });
+    }
+
+    // Hàm load dữ liệu ngược lên Form khi bấm vào dòng
+    function loadEntry(index) {
+        const item = dataStore[index];
+        document.getElementById('ngayKhaiBao').value = item.ngayKhaiBao;
+        document.getElementById('tenThietBi').value = item.tenThietBi;
+        document.getElementById('maHoSo').value = item.maHoSo;
+        document.getElementById('maThietBi').value = item.maThietBi;
+        document.getElementById('soCheTao').value = item.soCheTao;
+        document.getElementById('khuVuc').value = item.khuVuc;
+        document.getElementById('co').value = item.co;
+        document.getElementById('cq').value = item.cq;
+        document.getElementById('hopQuy').value = item.hopQuy;
+        document.getElementById('thongTinChung').value = item.thongTinChung;
+        document.getElementById('namSX').value = item.namSX;
+        document.getElementById('ngayKiemDinh').value = item.ngayKiemDinh;
+        document.getElementById('ngayKiemDinhTiepTheo').value = item.ngayKiemDinhTiepTheo;
+        document.getElementById('tinhTrang').value = item.tinhTrang;
+        document.getElementById('nguoiDanhGia').value = item.nguoiDanhGia;
+        document.getElementById('tuanThu').value = item.tuanThu;
+        
+        // Xử lý các ô khắc phục
+        toggleRemedial();
+        if (item.tuanThu !== "Tuân thủ") {
+            document.getElementById('hanhDongKhacPhuc').value = item.hanhDongKhacPhuc === "-" ? "" : item.hanhDongKhacPhuc;
+            document.getElementById('nguoiThucHien').value = item.nguoiThucHien === "-" ? "" : item.nguoiThucHien;
+            document.getElementById('thoiHanHoanThanh').value = item.thoiHan === "-" ? "" : item.thoiHan;
+        }
+
+        // Thông báo nhẹ cho người dùng
+        console.log("Đã tải thông tin thiết bị: " + item.tenThietBi);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function exportToExcel() {
@@ -259,7 +292,6 @@
             alert("Vui lòng nhập ít nhất một dòng dữ liệu!");
             return;
         }
-        
         const worksheet = XLSX.utils.json_to_sheet(dataStore);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "ThongKeThietBi");
